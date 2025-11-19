@@ -19,7 +19,7 @@ func NewBotPostgresRepository(q *db.Queries) repositories.BotRepository {
 	}
 }
 
-const pkg = "infrasctructure.repository"
+const pkg = "infrasctructure.repository.BotPostgresRepository"
 
 func (r *BotPostgresRepository) CreateIfNotExists(
 	ctx context.Context, tgid int32, botType entities.BotType,
