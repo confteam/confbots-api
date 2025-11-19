@@ -9,24 +9,24 @@ import (
 )
 
 type Config struct {
-	Env        string     `yaml:"env" env-default:"local"`
-	DBConfig   DBConfig   `yaml:"database"`
-	HTTPServer HTTPServer `yaml:"http_server"`
+	Env        string     `yaml:"env" toml:"env" env-default:"local"`
+	DBConfig   DBConfig   `yaml:"database" toml:"database"`
+	HTTPServer HTTPServer `yaml:"http_server" toml:"http_server"`
 }
 
 type DBConfig struct {
-	Name     string `yaml:"name" env-default:"postgres"`
-	Host     string `yaml:"host" env-default:"postgres"`
-	Port     string `yaml:"port" env-default:"5432"`
-	User     string `yaml:"user" env-default:"postgres"`
-	Password string `yaml:"password" env-default:"postgres"`
-	DBName   string `yaml:"db_name" env-default:"postgres"`
+	Name     string `yaml:"name" toml:"name" env-default:"postgres"`
+	Host     string `yaml:"host" toml:"host" env-default:"postgres"`
+	Port     string `yaml:"port" toml:"port" env-default:"5432"`
+	User     string `yaml:"user" toml:"user" env-default:"postgres"`
+	Password string `yaml:"password" toml:"password" env-default:"postgres"`
+	DBName   string `yaml:"db_name" toml:"db_name" env-default:"postgres"`
 }
 
 type HTTPServer struct {
-	Address     string        `yaml:"address" env-default:"localhost:8080"`
-	Timeout     time.Duration `yaml:"timeout" env-default:"5s"`
-	IdleTimeout time.Duration `yaml:"idle_timeout" env-default:"60s"`
+	Address     string        `yaml:"address" toml:"address" env-default:"localhost:8080"`
+	Timeout     time.Duration `yaml:"timeout" toml:"timeout" env-default:"5s"`
+	IdleTimeout time.Duration `yaml:"idle_timeout" toml:"idle_timeout" env-default:"60s"`
 }
 
 func MustLoad() *Config {
