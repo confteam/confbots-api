@@ -1,4 +1,4 @@
-FROM golang AS builder
+FROM golang:1.25.3 AS builder
 
 WORKDIR /app
 
@@ -8,12 +8,14 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o bots-info-service ./cmd/server
+RUN CGO_ENABLED=0 GOOS=linux go build -o confbots-api ./cmd/api
 
-FROM alpine
+FROM alpine:latest
 
 WORKDIR /app
 
-COPY --from=builder /app/bots-info-service .
+COPY --from=builder /app/confbots-api .
+COPY --from=builder /app/config ./config
+COPY --from=builder /app/db ./db
 
-CMD ["./bots-info-service"]
+CMD ["./confbots-api"]
