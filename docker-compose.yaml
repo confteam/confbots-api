@@ -4,8 +4,6 @@ services:
     container_name: "confbots-api"
     environment:
       CONFIG_PATH: "./config/local.toml"
-    ports:
-      - "8082:8082"
     networks:
       - default
       - confbots-net
