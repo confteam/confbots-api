@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/confteam/confbots-api/internal/config"
+	mwLogger "github.com/confteam/confbots-api/internal/transport/http/middleware/logger"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
@@ -20,6 +21,10 @@ func NewServer(cfg config.HTTPServer, log *slog.Logger, registerRoutes func(r ch
 	r := chi.NewRouter()
 
 	r.Use(middleware.Timeout(cfg.Timeout))
+	r.Use(middleware.RequestID)
+	r.Use(mwLogger.New(log))
+	r.Use(middleware.Recoverer)
+	r.Use(middleware.URLFormat)
 
 	registerRoutes(r)
 

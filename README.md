@@ -9,4 +9,3 @@
 
 # TODO
 - заменить "enconding/json" на "chi/v5/render"
-- добавить мидлвер для логов и мидлвер для request id
