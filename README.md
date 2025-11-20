@@ -8,4 +8,3 @@
 2. `docker compose up --build -d`
 
 # TODO
-- заменить "enconding/json" на "chi/v5/render"

@@ -18,11 +18,6 @@ import (
 )
 
 func main() {
-	// TODO:
-	// usecase
-	// router
-	// server
-
 	cfg := config.MustLoad()
 	log := logger.SetupLogger(cfg.Env)
 

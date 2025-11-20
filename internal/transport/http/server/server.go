@@ -20,7 +20,6 @@ type Server struct {
 func NewServer(cfg config.HTTPServer, log *slog.Logger, registerRoutes func(r chi.Router)) *Server {
 	r := chi.NewRouter()
 
-	r.Use(middleware.Timeout(cfg.Timeout))
 	r.Use(middleware.RequestID)
 	r.Use(mwLogger.New(log))
 	r.Use(middleware.Recoverer)
