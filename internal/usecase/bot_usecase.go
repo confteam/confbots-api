@@ -18,14 +18,14 @@ func NewBotUseCase(repo repositories.BotRepository) *BotUseCase {
 	}
 }
 
-const pkg = "usecase.BotUseCase"
+const botPkg = "usecase.BotUseCase"
 
 func (uc *BotUseCase) Auth(
 	ctx context.Context,
 	tgid int64,
 	botType entities.BotType,
 ) (*entities.BotWithChannel, error) {
-	const op = pkg + ".Auth"
+	const op = botPkg + ".Auth"
 	bot, err := uc.r.FindBotByTgIdAndType(ctx, tgid, botType)
 	if err != nil {
 		return nil, fmt.Errorf("%s:%v", op, err)

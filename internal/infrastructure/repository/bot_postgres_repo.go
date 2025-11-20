@@ -21,14 +21,14 @@ func NewBotPostgresRepository(q *db.Queries) repositories.BotRepository {
 	}
 }
 
-const pkg = "infrasctructure.repository.BotPostgresRepository"
+const botPkg = "infrasctructure.repository.BotPostgresRepository"
 
 func (r *BotPostgresRepository) FindBotByTgIdAndType(
 	ctx context.Context,
 	tgid int64,
 	botType entities.BotType,
 ) (*entities.BotWithChannel, error) {
-	const op = pkg + "FindBotByTgIdAndType"
+	const op = botPkg + "FindBotByTgIdAndType"
 
 	botWithChannel, err := r.q.FindBotByTgIdAndType(ctx, db.FindBotByTgIdAndTypeParams{
 		Tgid: tgid,
@@ -64,7 +64,7 @@ func (r *BotPostgresRepository) FindBotByTgIdAndType(
 func (r *BotPostgresRepository) Create(
 	ctx context.Context, tgid int64, botType entities.BotType,
 ) (*entities.BotWithChannel, error) {
-	const op = pkg + ".Create"
+	const op = botPkg + ".Create"
 
 	bot, err := r.q.CreateBot(ctx, db.CreateBotParams{
 		Tgid: tgid,

@@ -27,3 +27,17 @@ func ptrString(n pgtype.Text) *string {
 
 	return nil
 }
+
+func ptrPgInt8(v *int64) pgtype.Int8 {
+	if v == nil {
+		return pgtype.Int8{Valid: false}
+	}
+	return pgtype.Int8{Int64: *v, Valid: true}
+}
+
+func ptrPgText(v *string) pgtype.Text {
+	if v == nil {
+		return pgtype.Text{Valid: false}
+	}
+	return pgtype.Text{String: *v, Valid: true}
+}

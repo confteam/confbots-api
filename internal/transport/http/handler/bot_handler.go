@@ -30,10 +30,10 @@ func (h *BotHandler) RegisterRoutes(r chi.Router) {
 	r.Post("/bots", h.Auth)
 }
 
-const pkg = "transport.http.handler.BotHandler"
+const botPkg = "transport.http.handler.BotHandler"
 
 func (h *BotHandler) Auth(w http.ResponseWriter, r *http.Request) {
-	const op = pkg + ".Auth"
+	const op = botPkg + ".Auth"
 
 	log := reqLogger(h.log, r, op)
 
@@ -43,7 +43,7 @@ func (h *BotHandler) Auth(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Info("request body decoded",
-		slog.Int("tgid", int(req.TgId)),
+		slog.Int64("tgid", req.TgId),
 		slog.String("type", string(req.BotType)),
 	)
 
