@@ -43,7 +43,7 @@ func (q *Queries) CreateChannel(ctx context.Context, arg CreateChannelParams) (C
 	return i, err
 }
 
-const updateChannel = `-- name: UpdateChannel :exec
+const updateChannel = `-- name: UpdateChannel :one
 UPDATE channels
 SET
   channel_chat_id = COALESCE($2, channel_chat_id),
@@ -62,13 +62,22 @@ type UpdateChannelParams struct {
 	Decorations       pgtype.Text
 }
 
-func (q *Queries) UpdateChannel(ctx context.Context, arg UpdateChannelParams) error {
-	_, err := q.db.Exec(ctx, updateChannel,
+func (q *Queries) UpdateChannel(ctx context.Context, arg UpdateChannelParams) (Channel, error) {
+	row := q.db.QueryRow(ctx, updateChannel,
 		arg.ID,
 		arg.ChannelChatID,
 		arg.AdminChatID,
 		arg.DiscussionsChatID,
 		arg.Decorations,
 	)
-	return err
+	var i Channel
+	err := row.Scan(
+		&i.ID,
+		&i.Code,
+		&i.ChannelChatID,
+		&i.AdminChatID,
+		&i.DiscussionsChatID,
+		&i.Decorations,
+	)
+	return i, err
 }

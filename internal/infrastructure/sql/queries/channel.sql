@@ -3,7 +3,7 @@ INSERT INTO channels (code, channel_chat_id, admin_chat_id, discussions_chat_id)
 VALUES ($1, $2, $3, $4)
 RETURNING *;
 
--- name: UpdateChannel :exec
+-- name: UpdateChannel :one
 UPDATE channels
 SET
   channel_chat_id = COALESCE($2, channel_chat_id),
