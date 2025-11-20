@@ -8,9 +8,10 @@ const (
 	BotTypeMod   BotType = "MOD"
 )
 
-type Bot struct {
-	ID        int32
-	TgID      int32
-	Type      BotType
-	ChannelID *int32
+type BotWithChannel struct {
+	ID   int32
+	TgID int32
+	Type BotType
+
+	Channel *Channel
 }

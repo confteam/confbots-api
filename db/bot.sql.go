@@ -7,29 +7,79 @@ package db
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const createIfNotExists = `-- name: CreateIfNotExists :one
+const createBot = `-- name: CreateBot :one
 INSERT INTO bots (tgid, type)
 VALUES ($1, $2)
-ON CONFLICT (tgid, type) DO UPDATE
-  SET tgid = EXCLUDED.tgid
 RETURNING id, tgid, type, channel_id
 `
 
-type CreateIfNotExistsParams struct {
+type CreateBotParams struct {
 	Tgid int32
 	Type string
 }
 
-func (q *Queries) CreateIfNotExists(ctx context.Context, arg CreateIfNotExistsParams) (Bot, error) {
-	row := q.db.QueryRow(ctx, createIfNotExists, arg.Tgid, arg.Type)
+func (q *Queries) CreateBot(ctx context.Context, arg CreateBotParams) (Bot, error) {
+	row := q.db.QueryRow(ctx, createBot, arg.Tgid, arg.Type)
 	var i Bot
 	err := row.Scan(
 		&i.ID,
 		&i.Tgid,
 		&i.Type,
 		&i.ChannelID,
+	)
+	return i, err
+}
+
+const findBotByTgIdAndType = `-- name: FindBotByTgIdAndType :one
+SELECT 
+    b.id, b.tgid, b.type, b.channel_id,
+    c.id AS channel_id,
+    c.code, 
+    c.channel_chat_id, 
+    c.admin_chat_id, 
+    c.discussions_chat_id, 
+    c.decorations
+FROM bots b
+LEFT JOIN channels c ON b.channel_id = c.id
+WHERE b.tgid = $1 AND b.type = $2
+`
+
+type FindBotByTgIdAndTypeParams struct {
+	Tgid int32
+	Type string
+}
+
+type FindBotByTgIdAndTypeRow struct {
+	ID                int32
+	Tgid              int32
+	Type              string
+	ChannelID         pgtype.Int4
+	ChannelID_2       pgtype.Int4
+	Code              pgtype.Text
+	ChannelChatID     pgtype.Int4
+	AdminChatID       pgtype.Int4
+	DiscussionsChatID pgtype.Int4
+	Decorations       pgtype.Text
+}
+
+func (q *Queries) FindBotByTgIdAndType(ctx context.Context, arg FindBotByTgIdAndTypeParams) (FindBotByTgIdAndTypeRow, error) {
+	row := q.db.QueryRow(ctx, findBotByTgIdAndType, arg.Tgid, arg.Type)
+	var i FindBotByTgIdAndTypeRow
+	err := row.Scan(
+		&i.ID,
+		&i.Tgid,
+		&i.Type,
+		&i.ChannelID,
+		&i.ChannelID_2,
+		&i.Code,
+		&i.ChannelChatID,
+		&i.AdminChatID,
+		&i.DiscussionsChatID,
+		&i.Decorations,
 	)
 	return i, err
 }

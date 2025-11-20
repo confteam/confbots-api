@@ -11,9 +11,18 @@ type CreateBotRequest struct {
 }
 
 type CreateBotResponse struct {
-	ID        int32            `json:"id"`
-	TgId      int32            `json:"tgid"`
-	Type      entities.BotType `json:"type"`
-	ChannelID *int32           `json:"channel_id,omitempty"`
+	ID      int32            `json:"id"`
+	TgId    int32            `json:"tgid"`
+	Type    entities.BotType `json:"type"`
+	Channel *ChannelResponse `json:"channel,omitempty"`
 	resp.Response
+}
+
+type ChannelResponse struct {
+	ID                int32   `json:"id"`
+	Code              string  `json:"code"`
+	ChannelChatID     *int32  `json:"channel_chat_id"`
+	AdminChatID       *int32  `json:"admin_chat_id"`
+	DiscussionsChatID *int32  `json:"discussions_chat_id"`
+	Decorations       *string `json:"decorations"`
 }

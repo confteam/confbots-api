@@ -20,16 +20,25 @@ func NewBotUseCase(repo repositories.BotRepository) *BotUseCase {
 
 const pkg = "usecase.BotUseCase"
 
-func (uc *BotUseCase) CreateIfNotExists(
+func (uc *BotUseCase) Auth(
 	ctx context.Context,
 	tgid int32,
 	botType entities.BotType,
-) (*entities.Bot, error) {
-	const op = pkg + ".CreateIfNotExists"
-	bot, err := uc.r.CreateIfNotExists(ctx, tgid, botType)
+) (*entities.BotWithChannel, error) {
+	const op = pkg + ".Auth"
+	bot, err := uc.r.FindBotByTgIdAndType(ctx, tgid, botType)
 	if err != nil {
 		return nil, fmt.Errorf("%s:%v", op, err)
 	}
 
-	return bot, nil
+	if bot != nil {
+		return bot, nil
+	}
+
+	newBot, err := uc.r.Create(ctx, tgid, botType)
+	if err != nil {
+		return nil, fmt.Errorf("%s:%v", op, err)
+	}
+
+	return newBot, nil
 }

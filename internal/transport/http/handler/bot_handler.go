@@ -26,13 +26,13 @@ func NewBotHandler(uc *usecase.BotUseCase, log *slog.Logger) *BotHandler {
 }
 
 func (h *BotHandler) RegisterRoutes(r chi.Router) {
-	r.Post("/bots", h.CreateIfNotExists)
+	r.Post("/bots", h.Auth)
 }
 
 const pkg = "transport.http.handler.BotHandler"
 
-func (h *BotHandler) CreateIfNotExists(w http.ResponseWriter, r *http.Request) {
-	const op = pkg + ".CreateIfNotExists"
+func (h *BotHandler) Auth(w http.ResponseWriter, r *http.Request) {
+	const op = pkg + ".Auth"
 
 	h.log = h.log.With(
 		slog.String("op", op),
@@ -58,26 +58,38 @@ func (h *BotHandler) CreateIfNotExists(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bot, err := h.uc.CreateIfNotExists(r.Context(), req.TgId, req.BotType)
+	bot, err := h.uc.Auth(r.Context(), req.TgId, req.BotType)
 	if err != nil {
 		h.log.Error("failed to create bot", slog.Any("error", err))
 		render.JSON(w, r, resp.Error("failed to create bot"))
 		return
 	}
 
+	var channel *dto.ChannelResponse
+	if bot.Channel != nil {
+		channel = &dto.ChannelResponse{
+			ID:                bot.Channel.ID,
+			Code:              bot.Channel.Code,
+			ChannelChatID:     bot.Channel.ChannelChatID,
+			AdminChatID:       bot.Channel.AdminChatID,
+			DiscussionsChatID: bot.Channel.DiscussionsChatID,
+			Decorations:       bot.Channel.Decorations,
+		}
+	}
+
 	response := dto.CreateBotResponse{
-		Response:  resp.OK(),
-		ID:        bot.ID,
-		TgId:      bot.TgID,
-		Type:      bot.Type,
-		ChannelID: bot.ChannelID,
+		Response: resp.OK(),
+		ID:       bot.ID,
+		TgId:     bot.TgID,
+		Type:     bot.Type,
+		Channel:  channel,
 	}
 
 	h.log.Info("bot authorized",
 		slog.Int("id", int(response.ID)),
 		slog.Int("tgid", int(response.TgId)),
 		slog.String("type", string(response.Type)),
-		slog.Any("channel_id", response.ChannelID),
+		slog.Any("channel", channel),
 	)
 
 	render.JSON(w, r, response)

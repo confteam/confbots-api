@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/confteam/confbots-api/db"
@@ -21,11 +23,50 @@ func NewBotPostgresRepository(q *db.Queries) repositories.BotRepository {
 
 const pkg = "infrasctructure.repository.BotPostgresRepository"
 
-func (r *BotPostgresRepository) CreateIfNotExists(
+func (r *BotPostgresRepository) FindBotByTgIdAndType(
+	ctx context.Context,
+	tgid int32,
+	botType entities.BotType,
+) (*entities.BotWithChannel, error) {
+	const op = pkg + "FindBotByTgIdAndType"
+
+	botWithChannel, err := r.q.FindBotByTgIdAndType(ctx, db.FindBotByTgIdAndTypeParams{
+		Tgid: tgid,
+		Type: string(botType),
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("%s:%v", op, err)
+	}
+
+	var channel *entities.Channel
+	if botWithChannel.ChannelID.Valid {
+		channel = &entities.Channel{
+			ID:                botWithChannel.ChannelID.Int32,
+			Code:              botWithChannel.Code.String,
+			ChannelChatID:     ptrInt32(botWithChannel.ChannelChatID),
+			AdminChatID:       ptrInt32(botWithChannel.AdminChatID),
+			DiscussionsChatID: ptrInt32(botWithChannel.DiscussionsChatID),
+			Decorations:       ptrString(botWithChannel.Decorations),
+		}
+	}
+
+	return &entities.BotWithChannel{
+		ID:      botWithChannel.ID,
+		TgID:    botWithChannel.Tgid,
+		Type:    entities.BotType(botWithChannel.Type),
+		Channel: channel,
+	}, nil
+}
+
+func (r *BotPostgresRepository) Create(
 	ctx context.Context, tgid int32, botType entities.BotType,
-) (*entities.Bot, error) {
-	const op = pkg + ".CreateIfNotExists"
-	bot, err := r.q.CreateIfNotExists(ctx, db.CreateIfNotExistsParams{
+) (*entities.BotWithChannel, error) {
+	const op = pkg + ".Create"
+
+	bot, err := r.q.CreateBot(ctx, db.CreateBotParams{
 		Tgid: tgid,
 		Type: string(botType),
 	})
@@ -33,15 +74,10 @@ func (r *BotPostgresRepository) CreateIfNotExists(
 		return nil, fmt.Errorf("%s:%v", op, err)
 	}
 
-	var channelID *int32
-	if bot.ChannelID.Valid {
-		channelID = &bot.ChannelID.Int32
-	}
-
-	return &entities.Bot{
-		ID:        bot.ID,
-		TgID:      bot.Tgid,
-		Type:      entities.BotType(bot.Type),
-		ChannelID: channelID,
+	return &entities.BotWithChannel{
+		ID:      bot.ID,
+		TgID:    bot.Tgid,
+		Type:    entities.BotType(bot.Type),
+		Channel: nil,
 	}, nil
 }

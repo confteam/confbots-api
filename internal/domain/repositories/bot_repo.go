@@ -7,5 +7,6 @@ import (
 )
 
 type BotRepository interface {
-	CreateIfNotExists(ctx context.Context, tgid int32, botType entities.BotType) (*entities.Bot, error)
+	FindBotByTgIdAndType(ctx context.Context, tgid int32, botType entities.BotType) (*entities.BotWithChannel, error)
+	Create(ctx context.Context, tgid int32, botType entities.BotType) (*entities.BotWithChannel, error)
 }
