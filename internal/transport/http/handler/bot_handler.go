@@ -42,6 +42,7 @@ func (h *BotHandler) Auth(w http.ResponseWriter, r *http.Request) {
 	var req dto.CreateBotRequest
 	if err := render.DecodeJSON(r.Body, &req); err != nil {
 		h.log.Error("failed to decode request body", slog.Any("error", err))
+		w.WriteHeader(http.StatusBadRequest)
 		render.JSON(w, r, resp.Error("failed to decode request"))
 		return
 	}
@@ -53,6 +54,7 @@ func (h *BotHandler) Auth(w http.ResponseWriter, r *http.Request) {
 
 	if err := validator.New().Struct(req); err != nil {
 		validateErr := err.(validator.ValidationErrors)
+		w.WriteHeader(http.StatusUnprocessableEntity)
 		h.log.Error("invalid request", slog.Any("error", err))
 		render.JSON(w, r, resp.ValidationError(validateErr))
 		return
@@ -61,6 +63,7 @@ func (h *BotHandler) Auth(w http.ResponseWriter, r *http.Request) {
 	bot, err := h.uc.Auth(r.Context(), req.TgId, req.BotType)
 	if err != nil {
 		h.log.Error("failed to create bot", slog.Any("error", err))
+		w.WriteHeader(http.StatusInternalServerError)
 		render.JSON(w, r, resp.Error("failed to create bot"))
 		return
 	}
