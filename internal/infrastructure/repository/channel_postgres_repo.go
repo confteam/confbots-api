@@ -44,7 +44,7 @@ func (r *ChannelPostgresRepository) Create(
 	}
 
 	return &entities.Channel{
-		ID:                newChannel.ID,
+		ID:                int(newChannel.ID),
 		Code:              newChannel.Code,
 		ChannelChatID:     &newChannel.ChannelChatID.Int64,
 		AdminChatID:       &newChannel.AdminChatID.Int64,
@@ -70,7 +70,7 @@ func (r *ChannelPostgresRepository) Update(
 	}
 
 	return &entities.Channel{
-		ID:                updatedChannel.ID,
+		ID:                int(updatedChannel.ID),
 		Code:              updatedChannel.Code,
 		ChannelChatID:     &updatedChannel.ChannelChatID.Int64,
 		AdminChatID:       &updatedChannel.AdminChatID.Int64,

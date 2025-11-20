@@ -1,7 +1,7 @@
 package entities
 
 type Channel struct {
-	ID                int32
+	ID                int
 	Code              string
 	ChannelChatID     *int64
 	AdminChatID       *int64

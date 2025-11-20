@@ -23,3 +23,16 @@ type Channel struct {
 	DiscussionsChatID pgtype.Int8
 	Decorations       pgtype.Text
 }
+
+type User struct {
+	ID   int32
+	Tgid int64
+}
+
+type UserChannel struct {
+	ID        int32
+	UserID    int32
+	ChannelID int32
+	Role      pgtype.Text
+	Anonimity pgtype.Bool
+}

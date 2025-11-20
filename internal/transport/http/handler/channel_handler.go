@@ -18,11 +18,11 @@ type ChannelHandler struct {
 	val *validator.Validate
 }
 
-func NewChannelHandler(uc *usecase.ChannelUseCase, log *slog.Logger, val *validator.Validate) *ChannelHandler {
+func NewChannelHandler(uc *usecase.ChannelUseCase, log *slog.Logger) *ChannelHandler {
 	return &ChannelHandler{
 		uc:  uc,
 		log: log,
-		val: val,
+		val: validator.New(),
 	}
 }
 

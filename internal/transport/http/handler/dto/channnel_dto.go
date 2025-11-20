@@ -4,7 +4,7 @@ import resp "github.com/confteam/confbots-api/internal/transport/http/handler/re
 
 // for bot
 type ChannelResponse struct {
-	ID                int32   `json:"id"`
+	ID                int     `json:"id"`
 	Code              string  `json:"code"`
 	ChannelChatID     *int64  `json:"channel_chat_id"`
 	AdminChatID       *int64  `json:"admin_chat_id"`
@@ -20,7 +20,7 @@ type CreateChannelRequest struct {
 
 type CreateChannelResponse struct {
 	resp.Response `json:"response"`
-	ID            int32 `json:"id"`
+	ID            int `json:"id"`
 }
 
 type UpdateChannelRequest struct {

@@ -44,7 +44,7 @@ func (r *BotPostgresRepository) FindBotByTgIdAndType(
 	var channel *entities.Channel
 	if botWithChannel.ChannelID.Valid {
 		channel = &entities.Channel{
-			ID:                botWithChannel.ChannelID.Int32,
+			ID:                int(*ptrInt32(botWithChannel.ChannelID)),
 			Code:              botWithChannel.Code.String,
 			ChannelChatID:     ptrInt64(botWithChannel.ChannelChatID),
 			AdminChatID:       ptrInt64(botWithChannel.AdminChatID),
