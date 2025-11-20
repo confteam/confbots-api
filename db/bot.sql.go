@@ -18,7 +18,7 @@ RETURNING id, tgid, type, channel_id
 `
 
 type CreateBotParams struct {
-	Tgid int32
+	Tgid int64
 	Type string
 }
 
@@ -49,20 +49,20 @@ WHERE b.tgid = $1 AND b.type = $2
 `
 
 type FindBotByTgIdAndTypeParams struct {
-	Tgid int32
+	Tgid int64
 	Type string
 }
 
 type FindBotByTgIdAndTypeRow struct {
 	ID                int32
-	Tgid              int32
+	Tgid              int64
 	Type              string
 	ChannelID         pgtype.Int4
 	ChannelID_2       pgtype.Int4
 	Code              pgtype.Text
-	ChannelChatID     pgtype.Int4
-	AdminChatID       pgtype.Int4
-	DiscussionsChatID pgtype.Int4
+	ChannelChatID     pgtype.Int8
+	AdminChatID       pgtype.Int8
+	DiscussionsChatID pgtype.Int8
 	Decorations       pgtype.Text
 }
 

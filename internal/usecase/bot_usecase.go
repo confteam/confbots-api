@@ -22,7 +22,7 @@ const pkg = "usecase.BotUseCase"
 
 func (uc *BotUseCase) Auth(
 	ctx context.Context,
-	tgid int32,
+	tgid int64,
 	botType entities.BotType,
 ) (*entities.BotWithChannel, error) {
 	const op = pkg + ".Auth"

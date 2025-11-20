@@ -10,7 +10,7 @@ import (
 
 type Bot struct {
 	ID        int32
-	Tgid      int32
+	Tgid      int64
 	Type      string
 	ChannelID pgtype.Int4
 }
@@ -18,8 +18,8 @@ type Bot struct {
 type Channel struct {
 	ID                int32
 	Code              string
-	ChannelChatID     pgtype.Int4
-	AdminChatID       pgtype.Int4
-	DiscussionsChatID pgtype.Int4
+	ChannelChatID     pgtype.Int8
+	AdminChatID       pgtype.Int8
+	DiscussionsChatID pgtype.Int8
 	Decorations       pgtype.Text
 }

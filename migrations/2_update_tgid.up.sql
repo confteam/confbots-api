@@ -1,0 +1,9 @@
+ALTER TABLE bots
+ALTER COLUMN tgid TYPE BIGINT;
+
+ALTER TABLE channels
+ALTER COLUMN channel_chat_id TYPE BIGINT;
+ALTER TABLE channels
+ALTER COLUMN admin_chat_id TYPE BIGINT;
+ALTER TABLE channels
+ALTER COLUMN discussions_chat_id TYPE BIGINT;

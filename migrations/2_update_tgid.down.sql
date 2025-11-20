@@ -1,0 +1,9 @@
+ALTER TABLE bots
+ALTER COLUMN tgid TYPE INTEGER;
+
+ALTER TABLE channels
+ALTER COLUMN channel_chat_id TYPE INTEGER;
+ALTER TABLE channels
+ALTER COLUMN admin_chat_id TYPE INTEGER;
+ALTER TABLE channels
+ALTER COLUMN discussions_chat_id TYPE INTEGER;

@@ -6,13 +6,13 @@ import (
 )
 
 type CreateBotRequest struct {
-	TgId    int32            `json:"tgid" validate:"required"`
+	TgId    int64            `json:"tgid" validate:"required"`
 	BotType entities.BotType `json:"type" validate:"required"`
 }
 
 type CreateBotResponse struct {
 	ID      int32            `json:"id"`
-	TgId    int32            `json:"tgid"`
+	TgId    int64            `json:"tgid"`
 	Type    entities.BotType `json:"type"`
 	Channel *ChannelResponse `json:"channel,omitempty"`
 	resp.Response
@@ -21,8 +21,8 @@ type CreateBotResponse struct {
 type ChannelResponse struct {
 	ID                int32   `json:"id"`
 	Code              string  `json:"code"`
-	ChannelChatID     *int32  `json:"channel_chat_id"`
-	AdminChatID       *int32  `json:"admin_chat_id"`
-	DiscussionsChatID *int32  `json:"discussions_chat_id"`
+	ChannelChatID     *int64  `json:"channel_chat_id"`
+	AdminChatID       *int64  `json:"admin_chat_id"`
+	DiscussionsChatID *int64  `json:"discussions_chat_id"`
 	Decorations       *string `json:"decorations"`
 }

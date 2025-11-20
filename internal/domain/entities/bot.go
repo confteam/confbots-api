@@ -10,7 +10,7 @@ const (
 
 type BotWithChannel struct {
 	ID   int32
-	TgID int32
+	TgID int64
 	Type BotType
 
 	Channel *Channel
