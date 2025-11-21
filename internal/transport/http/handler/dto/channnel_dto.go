@@ -6,17 +6,17 @@ import resp "github.com/confteam/confbots-api/internal/transport/http/handler/re
 type ChannelResponse struct {
 	ID                int     `json:"id"`
 	Code              string  `json:"code"`
-	ChannelChatID     *int64  `json:"channel_chat_id"`
-	AdminChatID       *int64  `json:"admin_chat_id"`
-	DiscussionsChatID *int64  `json:"discussions_chat_id"`
+	ChannelChatID     *int64  `json:"channelChatId"`
+	AdminChatID       *int64  `json:"adminChatId"`
+	DiscussionsChatID *int64  `json:"discussionsChatId"`
 	Decorations       *string `json:"decorations"`
 }
 
 type CreateChannelRequest struct {
 	Code              string `json:"code" validate:"required"`
-	ChannelChatID     *int64 `json:"channel_chat_id,omitempty"`
-	AdminChatID       *int64 `json:"admin_chat_id,omitempty"`
-	DiscussionsChatID *int64 `json:"discussions_chat_id,omitempty"`
+	ChannelChatID     *int64 `json:"channelChatId,omitempty"`
+	AdminChatID       *int64 `json:"adminChatId,omitempty"`
+	DiscussionsChatID *int64 `json:"discussionsChatId,omitempty"`
 }
 
 type CreateChannelResponse struct {
@@ -25,10 +25,10 @@ type CreateChannelResponse struct {
 }
 
 type UpdateChannelRequest struct {
-	ChannelChatID     *int64  `json:"channel_chat_id,omitempty"`
-	AdminChatID       *int64  `json:"admin_chat_id,omitempty"`
-	DiscussionsChatID *int64  `json:"discussions_chat_id,omitempty"`
-	Decorations       *string `json:"decorations,omitempty"`
+	ChannelChatID     *int64  `json:"channelChatId,omitempty"`
+	AdminChatID       *int64  `json:"adminChatId,omitempty"`
+	DiscussionsChatID *int64  `json:"discussionsChatId,omitempty"`
+	Decorations       *string `json:"decorationsChatId,omitempty"`
 }
 
 type UpdateChannelResponse struct {

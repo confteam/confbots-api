@@ -7,7 +7,7 @@ import (
 
 type UpsertUserRequest struct {
 	TgID      int64 `json:"tgid" validate:"required"`
-	ChannelID int   `json:"channel_id" validate:"required"`
+	ChannelID int   `json:"channelId" validate:"required"`
 }
 
 type UpsertUserResponse struct {
