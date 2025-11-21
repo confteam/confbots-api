@@ -7,7 +7,27 @@ package db
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
+
+const getUserAnonimity = `-- name: GetUserAnonimity :one
+SELECT anonimity
+FROM user_channels
+WHERE user_id = $1 AND channel_id = $2
+`
+
+type GetUserAnonimityParams struct {
+	UserID    int32
+	ChannelID int32
+}
+
+func (q *Queries) GetUserAnonimity(ctx context.Context, arg GetUserAnonimityParams) (pgtype.Bool, error) {
+	row := q.db.QueryRow(ctx, getUserAnonimity, arg.UserID, arg.ChannelID)
+	var anonimity pgtype.Bool
+	err := row.Scan(&anonimity)
+	return anonimity, err
+}
 
 const getUserIdByTgId = `-- name: GetUserIdByTgId :one
 SELECT id
@@ -38,6 +58,25 @@ func (q *Queries) GetUserRole(ctx context.Context, arg GetUserRoleParams) (strin
 	var role string
 	err := row.Scan(&role)
 	return role, err
+}
+
+const toggleUserAnonimity = `-- name: ToggleUserAnonimity :one
+UPDATE user_channels
+SET anonimity = NOT anonimity
+WHERE user_id = $1 AND channel_id = $2
+RETURNING anonimity
+`
+
+type ToggleUserAnonimityParams struct {
+	UserID    int32
+	ChannelID int32
+}
+
+func (q *Queries) ToggleUserAnonimity(ctx context.Context, arg ToggleUserAnonimityParams) (pgtype.Bool, error) {
+	row := q.db.QueryRow(ctx, toggleUserAnonimity, arg.UserID, arg.ChannelID)
+	var anonimity pgtype.Bool
+	err := row.Scan(&anonimity)
+	return anonimity, err
 }
 
 const updateUserRole = `-- name: UpdateUserRole :exec

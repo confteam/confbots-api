@@ -166,7 +166,7 @@ func (h *UserHandler) GetRole(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Info("got tg's role",
+	log.Info("got user's role",
 		slog.String("role", string(role)),
 		slog.Int64("tgid", tgID),
 		slog.Int("channel_id", channelID),
@@ -175,6 +175,66 @@ func (h *UserHandler) GetRole(w http.ResponseWriter, r *http.Request) {
 	response := dto.GetUserRoleResponse{
 		Role:     role,
 		Response: resp.OK(),
+	}
+
+	json(w, r, http.StatusOK, response)
+}
+
+func (h *UserHandler) GetAnonimity(w http.ResponseWriter, r *http.Request) {
+	const op = userPkg + ".GetAnonimity"
+
+	log := reqLogger(h.log, r, op)
+
+	tgID, channelID := h.GetQueries(w, r, log)
+	if tgID == 0 || channelID == 0 {
+		return
+	}
+
+	anonimity, err := h.uc.GetAnonimity(r.Context(), tgID, channelID)
+	if err != nil {
+		returnError(w, r, log, http.StatusInternalServerError, "failed to get user's anonimity", err)
+		return
+	}
+
+	log.Info("got user's anonimity",
+		slog.Bool("anonimity", anonimity),
+		slog.Int64("tgid", tgID),
+		slog.Int("channel_id", channelID),
+	)
+
+	response := dto.UserAnonimityResponse{
+		Anonimity: anonimity,
+		Response:  resp.OK(),
+	}
+
+	json(w, r, http.StatusOK, response)
+}
+
+func (h *UserHandler) ToggleAnonimity(w http.ResponseWriter, r *http.Request) {
+	const op = userPkg + ".ToggleAnonimity"
+
+	log := reqLogger(h.log, r, op)
+
+	tgID, channelID := h.GetQueries(w, r, log)
+	if tgID == 0 || channelID == 0 {
+		return
+	}
+
+	anonimity, err := h.uc.ToggleAnonimity(r.Context(), tgID, channelID)
+	if err != nil {
+		returnError(w, r, log, http.StatusInternalServerError, "failed to toggle user's anonimity", err)
+		return
+	}
+
+	log.Info("toggled user's anonimity",
+		slog.Bool("anonimity", anonimity),
+		slog.Int64("tgid", tgID),
+		slog.Int("channel_id", channelID),
+	)
+
+	response := dto.UserAnonimityResponse{
+		Anonimity: anonimity,
+		Response:  resp.OK(),
 	}
 
 	json(w, r, http.StatusOK, response)

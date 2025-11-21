@@ -61,3 +61,35 @@ func (uc *UserUseCase) GetRole(ctx context.Context, tgid int64, channelID int) (
 
 	return entities.Role(role), nil
 }
+
+func (uc *UserUseCase) GetAnonimity(ctx context.Context, tgid int64, channelID int) (bool, error) {
+	const op = userPkg + ".GetAnonimity"
+
+	userID, err := uc.r.GetIdByTgId(ctx, tgid)
+	if err != nil {
+		return false, fmt.Errorf("%s:%v", op, err)
+	}
+
+	anonimity, err := uc.r.GetAnonimity(ctx, userID, channelID)
+	if err != nil {
+		return false, fmt.Errorf("%s:%v", op, err)
+	}
+
+	return anonimity, nil
+}
+
+func (uc *UserUseCase) ToggleAnonimity(ctx context.Context, tgid int64, channelID int) (bool, error) {
+	const op = userPkg + ".GetAnonimity"
+
+	userID, err := uc.r.GetIdByTgId(ctx, tgid)
+	if err != nil {
+		return false, fmt.Errorf("%s:%v", op, err)
+	}
+
+	anonimity, err := uc.r.ToggleAnonimity(ctx, userID, channelID)
+	if err != nil {
+		return false, fmt.Errorf("%s:%v", op, err)
+	}
+
+	return anonimity, nil
+}

@@ -11,4 +11,6 @@ type UserRepository interface {
 	UpdateRole(ctx context.Context, role entities.Role, userID int, channelID int) error
 	GetRole(ctx context.Context, userID int, channelID int) (entities.Role, error)
 	GetIdByTgId(ctx context.Context, tgid int64) (int, error)
+	GetAnonimity(ctx context.Context, userID int, channelID int) (bool, error)
+	ToggleAnonimity(ctx context.Context, userID int, channelID int) (bool, error)
 }

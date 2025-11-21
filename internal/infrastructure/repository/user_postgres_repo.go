@@ -74,3 +74,31 @@ func (r *UserPostgresRepository) GetIdByTgId(ctx context.Context, tgid int64) (i
 
 	return int(id), nil
 }
+
+func (r *UserPostgresRepository) GetAnonimity(ctx context.Context, userID int, channelID int) (bool, error) {
+	const op = userPkg + ".GetAnonimity"
+
+	anonimity, err := r.q.GetUserAnonimity(ctx, db.GetUserAnonimityParams{
+		UserID:    int32(userID),
+		ChannelID: int32(channelID),
+	})
+	if err != nil {
+		return false, fmt.Errorf("%s:%v", op, err)
+	}
+
+	return anonimity.Bool, nil
+}
+
+func (r *UserPostgresRepository) ToggleAnonimity(ctx context.Context, userID int, channelID int) (bool, error) {
+	const op = userPkg + ".ToggleAnonimity"
+
+	anonimity, err := r.q.ToggleUserAnonimity(ctx, db.ToggleUserAnonimityParams{
+		UserID:    int32(userID),
+		ChannelID: int32(channelID),
+	})
+	if err != nil {
+		return false, fmt.Errorf("%s:%v", op, err)
+	}
+
+	return anonimity.Bool, nil
+}

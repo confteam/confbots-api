@@ -28,3 +28,14 @@ WHERE user_id = $2 AND channel_id = $3;
 SELECT role
 FROM user_channels
 WHERE user_id = $1 AND channel_id = $2;
+
+-- name: GetUserAnonimity :one
+SELECT anonimity
+FROM user_channels
+WHERE user_id = $1 AND channel_id = $2;
+
+-- name: ToggleUserAnonimity :one
+UPDATE user_channels
+SET anonimity = NOT anonimity
+WHERE user_id = $1 AND channel_id = $2
+RETURNING anonimity;

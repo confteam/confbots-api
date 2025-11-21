@@ -26,3 +26,8 @@ type GetUserRoleResponse struct {
 	Role entities.Role `json:"role"`
 	resp.Response
 }
+
+type UserAnonimityResponse struct {
+	Anonimity bool `json:"anonimity"`
+	resp.Response
+}
