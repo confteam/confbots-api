@@ -18,6 +18,6 @@ type UserChannel struct {
 	ID        int
 	UserID    int
 	ChannelID int
-	role      Role
+	Role      Role
 	anonimity bool
 }

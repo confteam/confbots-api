@@ -33,6 +33,6 @@ type UserChannel struct {
 	ID        int32
 	UserID    int32
 	ChannelID int32
-	Role      pgtype.Text
+	Role      string
 	Anonimity pgtype.Bool
 }

@@ -20,10 +20,10 @@ func NewUserUseCase(r repositories.UserRepository) *UserUseCase {
 
 const userPkg = "usecase.UserUseCase"
 
-func (uc *UserUseCase) Upsert(ctx context.Context, tgid int64, channelID int) (int, error) {
+func (uc *UserUseCase) Upsert(ctx context.Context, tgid int64, channelID int, role entities.Role) (int, error) {
 	const op = userPkg + ".Upsert"
 
-	id, err := uc.r.Upsert(ctx, tgid, channelID)
+	id, err := uc.r.Upsert(ctx, tgid, channelID, role)
 	if err != nil {
 		return 0, fmt.Errorf("%s:%v", op, err)
 	}

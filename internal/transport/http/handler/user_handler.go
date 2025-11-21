@@ -27,7 +27,7 @@ func NewUserHandler(uc *usecase.UserUseCase, log *slog.Logger) *UserHandler {
 }
 
 func (h *UserHandler) RegisterRoutes(r chi.Router) {
-	r.Post("/users", h.Upsert)
+	r.Post("/users/{id}", h.Upsert)
 	r.Patch("/users/role", h.UpdateRole)
 	r.Get("/users/role", h.GetRole)
 }
@@ -72,8 +72,16 @@ func (h *UserHandler) Upsert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	tgIDStr := chi.URLParam(r, "id")
+	tgID, err := strconv.Atoi(tgIDStr)
+	if err != nil {
+		returnError(w, r, log, http.StatusUnprocessableEntity, "failed to convert tgID", nil)
+		return
+	}
+
 	log.Info("request body decoded",
-		slog.Int64("tgid", req.TgID),
+		slog.String("role", string(req.Role)),
+		slog.Int64("tgid", int64(tgID)),
 		slog.Int("channel_id", req.ChannelID),
 	)
 
@@ -81,16 +89,17 @@ func (h *UserHandler) Upsert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, err := h.uc.Upsert(r.Context(), req.TgID, req.ChannelID)
+	userID, err := h.uc.Upsert(r.Context(), int64(tgID), req.ChannelID, req.Role)
 	if err != nil {
 		returnError(w, r, log, http.StatusInternalServerError, "failed to upsert user", err)
 		return
 	}
 
 	log.Info("upserted user",
-		slog.Int64("tgid", req.TgID),
+		slog.Int64("tgid", int64(tgID)),
 		slog.Int("user_id", userID),
 		slog.Int("channel_id", req.ChannelID),
+		slog.String("role", string(req.Role)),
 	)
 
 	response := dto.UpsertUserResponse{
@@ -106,6 +115,9 @@ func (h *UserHandler) UpdateRole(w http.ResponseWriter, r *http.Request) {
 	log := reqLogger(h.log, r, op)
 
 	tgID, channelID := h.GetQueries(w, r, log)
+	if tgID == 0 || channelID == 0 {
+		return
+	}
 
 	var req dto.UpdateUserRoleRequest
 	if !decodeJson(w, r, log, &req) {
@@ -144,6 +156,9 @@ func (h *UserHandler) GetRole(w http.ResponseWriter, r *http.Request) {
 	log := reqLogger(h.log, r, op)
 
 	tgID, channelID := h.GetQueries(w, r, log)
+	if tgID == 0 || channelID == 0 {
+		return
+	}
 
 	role, err := h.uc.GetRole(r.Context(), tgID, channelID)
 	if err != nil {

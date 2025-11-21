@@ -21,7 +21,7 @@ func main() {
 	cfg := config.MustLoad()
 	log := logger.SetupLogger(cfg.Env)
 
-	pool, err := repository.NewPgxPool(cfg.DBConfig)
+	pool, err := repository.NewPgxPool(cfg.DBConfig, log)
 	if err != nil {
 		log.Error("cannot connect to db", "error", err)
 		return
@@ -38,7 +38,7 @@ func main() {
 	userUseCase := usecase.NewUserUseCase(userRepo)
 
 	botHandler := handler.NewBotHandler(botUseCase, log)
-	channelHandler := handler.NewChannelHandler(channelUseCase, log)
+	channelHandler := handler.NewChannelHandler(channelUseCase, botUseCase, log)
 	userHandler := handler.NewUserHandler(userUseCase, log)
 
 	srv := server.NewServer(cfg.HTTPServer, log, func(r chi.Router) {

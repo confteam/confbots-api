@@ -7,8 +7,6 @@ package db
 
 import (
 	"context"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const getUserIdByTgId = `-- name: GetUserIdByTgId :one
@@ -35,9 +33,9 @@ type GetUserRoleParams struct {
 	ChannelID int32
 }
 
-func (q *Queries) GetUserRole(ctx context.Context, arg GetUserRoleParams) (pgtype.Text, error) {
+func (q *Queries) GetUserRole(ctx context.Context, arg GetUserRoleParams) (string, error) {
 	row := q.db.QueryRow(ctx, getUserRole, arg.UserID, arg.ChannelID)
-	var role pgtype.Text
+	var role string
 	err := row.Scan(&role)
 	return role, err
 }
@@ -49,7 +47,7 @@ WHERE user_id = $2 AND channel_id = $3
 `
 
 type UpdateUserRoleParams struct {
-	Role      pgtype.Text
+	Role      string
 	UserID    int32
 	ChannelID int32
 }
@@ -79,7 +77,7 @@ SELECT id FROM upsert_user
 type UpsertUserParams struct {
 	Tgid      int64
 	ChannelID int32
-	Role      pgtype.Text
+	Role      string
 }
 
 func (q *Queries) UpsertUser(ctx context.Context, arg UpsertUserParams) (int32, error) {

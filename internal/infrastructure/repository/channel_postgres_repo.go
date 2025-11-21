@@ -49,11 +49,12 @@ func (r *ChannelPostgresRepository) Create(
 
 func (r *ChannelPostgresRepository) Update(
 	ctx context.Context,
-	channel entities.ChannelWithoutIDAndCode,
+	channel entities.ChannelWithoutCode,
 ) (*entities.Channel, error) {
 	const op = channelPkg + ".Update"
 
 	updatedChannel, err := r.q.UpdateChannel(ctx, db.UpdateChannelParams{
+		ID:                int32(channel.ID),
 		ChannelChatID:     ptrPgInt8(channel.ChannelChatID),
 		AdminChatID:       ptrPgInt8(channel.AdminChatID),
 		DiscussionsChatID: ptrPgInt8(channel.DiscussionsChatID),
@@ -64,7 +65,7 @@ func (r *ChannelPostgresRepository) Update(
 	}
 
 	return &entities.Channel{
-		ID:                int(updatedChannel.ID),
+		ID:                channel.ID,
 		Code:              updatedChannel.Code,
 		ChannelChatID:     &updatedChannel.ChannelChatID.Int64,
 		AdminChatID:       &updatedChannel.AdminChatID.Int64,

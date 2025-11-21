@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/confteam/confbots-api/internal/config"
@@ -11,7 +12,7 @@ import (
 
 const op = "infrastructure.repository.NewPgxConn"
 
-func NewPgxPool(dbCfg config.DBConfig) (*pgxpool.Pool, error) {
+func NewPgxPool(dbCfg config.DBConfig, log *slog.Logger) (*pgxpool.Pool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
@@ -31,6 +32,14 @@ func NewPgxPool(dbCfg config.DBConfig) (*pgxpool.Pool, error) {
 	if err = pool.Ping(ctx); err != nil {
 		return nil, fmt.Errorf("%s:%v", op, err)
 	}
+
+	log.Info("connected to db",
+		slog.String("name", dbCfg.Name),
+		slog.String("user", dbCfg.User),
+		slog.String("host", dbCfg.Host),
+		slog.String("port", dbCfg.Port),
+		slog.String("db_name", dbCfg.DBName),
+	)
 
 	return pool, nil
 }

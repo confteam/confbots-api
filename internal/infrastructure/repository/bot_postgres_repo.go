@@ -9,6 +9,7 @@ import (
 	"github.com/confteam/confbots-api/db"
 	"github.com/confteam/confbots-api/internal/domain/entities"
 	"github.com/confteam/confbots-api/internal/domain/repositories"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type BotPostgresRepository struct {
@@ -80,4 +81,24 @@ func (r *BotPostgresRepository) Create(
 		Type:    entities.BotType(bot.Type),
 		Channel: nil,
 	}, nil
+}
+
+func (r *BotPostgresRepository) UpdateChannelID(
+	ctx context.Context, tgid int64, botType entities.BotType, channelID int,
+) error {
+	const op = botPkg + ".UpdateChannelID"
+
+	var channelIDPgInt4 pgtype.Int4
+	channelIDPgInt4.Int32 = int32(channelID)
+	channelIDPgInt4.Valid = true
+
+	if err := r.q.UpdateBotChannelID(ctx, db.UpdateBotChannelIDParams{
+		Tgid:      tgid,
+		Type:      string(botType),
+		ChannelID: channelIDPgInt4,
+	}); err != nil {
+		return fmt.Errorf("%s:%v", op, err)
+	}
+
+	return nil
 }

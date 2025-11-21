@@ -83,3 +83,20 @@ func (q *Queries) FindBotByTgIdAndType(ctx context.Context, arg FindBotByTgIdAnd
 	)
 	return i, err
 }
+
+const updateBotChannelID = `-- name: UpdateBotChannelID :exec
+UPDATE bots
+SET channel_id = $1
+WHERE tgid = $2 AND type = $3
+`
+
+type UpdateBotChannelIDParams struct {
+	ChannelID pgtype.Int4
+	Tgid      int64
+	Type      string
+}
+
+func (q *Queries) UpdateBotChannelID(ctx context.Context, arg UpdateBotChannelIDParams) error {
+	_, err := q.db.Exec(ctx, updateBotChannelID, arg.ChannelID, arg.Tgid, arg.Type)
+	return err
+}

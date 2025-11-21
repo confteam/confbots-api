@@ -1,6 +1,9 @@
 package dto
 
-import resp "github.com/confteam/confbots-api/internal/transport/http/handler/response"
+import (
+	"github.com/confteam/confbots-api/internal/domain/entities"
+	resp "github.com/confteam/confbots-api/internal/transport/http/handler/response"
+)
 
 // for bot
 type ChannelResponse struct {
@@ -13,10 +16,12 @@ type ChannelResponse struct {
 }
 
 type CreateChannelRequest struct {
-	Code              string `json:"code" validate:"required"`
-	ChannelChatID     *int64 `json:"channelChatId,omitempty"`
-	AdminChatID       *int64 `json:"adminChatId,omitempty"`
-	DiscussionsChatID *int64 `json:"discussionsChatId,omitempty"`
+	BotTgId           int64            `json:"botTgId" validate:"required"`
+	BotType           entities.BotType `json:"botType" validate:"required"`
+	Code              string           `json:"code" validate:"required"`
+	ChannelChatID     *int64           `json:"channelChatId,omitempty"`
+	AdminChatID       *int64           `json:"adminChatId,omitempty"`
+	DiscussionsChatID *int64           `json:"discussionsChatId,omitempty"`
 }
 
 type CreateChannelResponse struct {
@@ -28,7 +33,7 @@ type UpdateChannelRequest struct {
 	ChannelChatID     *int64  `json:"channelChatId,omitempty"`
 	AdminChatID       *int64  `json:"adminChatId,omitempty"`
 	DiscussionsChatID *int64  `json:"discussionsChatId,omitempty"`
-	Decorations       *string `json:"decorationsChatId,omitempty"`
+	Decorations       *string `json:"decorations,omitempty"`
 }
 
 type UpdateChannelResponse struct {

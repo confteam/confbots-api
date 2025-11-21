@@ -3,6 +3,7 @@ package handler
 import (
 	"log/slog"
 	"net/http"
+	"strconv"
 
 	"github.com/confteam/confbots-api/internal/domain/entities"
 	"github.com/confteam/confbots-api/internal/transport/http/handler/dto"
@@ -13,14 +14,16 @@ import (
 )
 
 type ChannelHandler struct {
-	uc  *usecase.ChannelUseCase
+	ucC *usecase.ChannelUseCase
+	ucB *usecase.BotUseCase
 	log *slog.Logger
 	val *validator.Validate
 }
 
-func NewChannelHandler(uc *usecase.ChannelUseCase, log *slog.Logger) *ChannelHandler {
+func NewChannelHandler(ucC *usecase.ChannelUseCase, ucB *usecase.BotUseCase, log *slog.Logger) *ChannelHandler {
 	return &ChannelHandler{
-		uc:  uc,
+		ucC: ucC,
+		ucB: ucB,
 		log: log,
 		val: validator.New(),
 	}
@@ -28,7 +31,7 @@ func NewChannelHandler(uc *usecase.ChannelUseCase, log *slog.Logger) *ChannelHan
 
 func (h *ChannelHandler) RegisterRoutes(r chi.Router) {
 	r.Post("/channels", h.Create)
-	r.Patch("/channels", h.Update)
+	r.Patch("/channels/{id}", h.Update)
 }
 
 const channelPkg = "transport.http.handler.ChannelHandler"
@@ -44,6 +47,8 @@ func (h *ChannelHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Info("request body decoded",
+		slog.Int64("bot_tgid", req.BotTgId),
+		slog.String("bot_type", string(req.BotType)),
 		slog.String("code", req.Code),
 		slog.Int64("channel_chat_id", *req.ChannelChatID),
 		slog.Int64("admin_chat_id", *req.AdminChatID),
@@ -54,7 +59,7 @@ func (h *ChannelHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	channel, err := h.uc.Create(r.Context(), entities.ChannelWithoutID{
+	channel, err := h.ucC.Create(r.Context(), entities.ChannelWithoutID{
 		Code:              req.Code,
 		ChannelChatID:     req.ChannelChatID,
 		AdminChatID:       req.AdminChatID,
@@ -62,6 +67,11 @@ func (h *ChannelHandler) Create(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		returnError(w, r, log, http.StatusInternalServerError, "failed to create channel", err)
+		return
+	}
+
+	if err := h.ucB.UpdateChannelID(r.Context(), req.BotTgId, req.BotType, channel.ID); err != nil {
+		returnError(w, r, log, http.StatusInternalServerError, "failed to update bot's channel_id", err)
 		return
 	}
 
@@ -87,12 +97,24 @@ func (h *ChannelHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	log := reqLogger(h.log, r, op)
 
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		returnError(w, r, log, http.StatusUnprocessableEntity, "failed to convert id", nil)
+		return
+	}
+
 	var req dto.UpdateChannelRequest
 	if !decodeJson(w, r, log, &req) {
 		return
 	}
 
+	if req.Decorations == nil {
+		req.Decorations = new(string)
+	}
+
 	log.Info("request body decoded",
+		slog.Int("id", id),
 		slog.Int64("channel_chat_id", *req.ChannelChatID),
 		slog.Int64("admin_chat_id", *req.AdminChatID),
 		slog.Int64("discussions_chat_id", *req.DiscussionsChatID),
@@ -103,7 +125,8 @@ func (h *ChannelHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	channel, err := h.uc.Update(r.Context(), entities.ChannelWithoutIDAndCode{
+	channel, err := h.ucC.Update(r.Context(), entities.ChannelWithoutCode{
+		ID:                id,
 		ChannelChatID:     req.ChannelChatID,
 		AdminChatID:       req.AdminChatID,
 		DiscussionsChatID: req.DiscussionsChatID,

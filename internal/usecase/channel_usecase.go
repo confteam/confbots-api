@@ -36,7 +36,7 @@ func (uc *ChannelUseCase) Create(
 
 func (uc *ChannelUseCase) Update(
 	ctx context.Context,
-	channel entities.ChannelWithoutIDAndCode,
+	channel entities.ChannelWithoutCode,
 ) (*entities.Channel, error) {
 	const op = channelPkg + ".Update"
 

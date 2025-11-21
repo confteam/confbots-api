@@ -15,3 +15,8 @@ WHERE b.tgid = $1 AND b.type = $2;
 INSERT INTO bots (tgid, type)
 VALUES ($1, $2)
 RETURNING id, tgid, type, channel_id;
+
+-- name: UpdateBotChannelID :exec
+UPDATE bots
+SET channel_id = $1
+WHERE tgid = $2 AND type = $3;
