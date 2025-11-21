@@ -12,9 +12,16 @@ import (
 )
 
 const createChannel = `-- name: CreateChannel :one
-INSERT INTO channels (code, channel_chat_id, admin_chat_id, discussions_chat_id)
-VALUES ($1, $2, $3, $4)
-RETURNING id, code, channel_chat_id, admin_chat_id, discussions_chat_id, decorations
+WITH create_channel AS (
+  INSERT INTO channels (code, channel_chat_id, admin_chat_id, discussions_chat_id)
+  VALUES ($1, $2, $3, $4)
+  RETURNING id, code, channel_chat_id, admin_chat_id, discussions_chat_id, decorations
+)
+UPDATE bots
+SET channel_id = create_channel.id
+FROM create_channel
+WHERE tgid = $5 AND type = $6
+RETURNING create_channel.id, create_channel.code, create_channel.channel_chat_id, create_channel.admin_chat_id, create_channel.discussions_chat_id, create_channel.decorations
 `
 
 type CreateChannelParams struct {
@@ -22,16 +29,29 @@ type CreateChannelParams struct {
 	ChannelChatID     pgtype.Int8
 	AdminChatID       pgtype.Int8
 	DiscussionsChatID pgtype.Int8
+	Tgid              int64
+	Type              string
 }
 
-func (q *Queries) CreateChannel(ctx context.Context, arg CreateChannelParams) (Channel, error) {
+type CreateChannelRow struct {
+	ID                int32
+	Code              string
+	ChannelChatID     pgtype.Int8
+	AdminChatID       pgtype.Int8
+	DiscussionsChatID pgtype.Int8
+	Decorations       pgtype.Text
+}
+
+func (q *Queries) CreateChannel(ctx context.Context, arg CreateChannelParams) (CreateChannelRow, error) {
 	row := q.db.QueryRow(ctx, createChannel,
 		arg.Code,
 		arg.ChannelChatID,
 		arg.AdminChatID,
 		arg.DiscussionsChatID,
+		arg.Tgid,
+		arg.Type,
 	)
-	var i Channel
+	var i CreateChannelRow
 	err := row.Scan(
 		&i.ID,
 		&i.Code,

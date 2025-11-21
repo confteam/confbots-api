@@ -14,16 +14,14 @@ import (
 )
 
 type ChannelHandler struct {
-	ucC *usecase.ChannelUseCase
-	ucB *usecase.BotUseCase
+	uc  *usecase.ChannelUseCase
 	log *slog.Logger
 	val *validator.Validate
 }
 
-func NewChannelHandler(ucC *usecase.ChannelUseCase, ucB *usecase.BotUseCase, log *slog.Logger) *ChannelHandler {
+func NewChannelHandler(uc *usecase.ChannelUseCase, log *slog.Logger) *ChannelHandler {
 	return &ChannelHandler{
-		ucC: ucC,
-		ucB: ucB,
+		uc:  uc,
 		log: log,
 		val: validator.New(),
 	}
@@ -59,7 +57,9 @@ func (h *ChannelHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	channel, err := h.ucC.Create(r.Context(), entities.ChannelWithoutID{
+	channel, err := h.uc.Create(r.Context(), entities.ChannelWithBotTgidAndType{
+		BotType:           string(req.BotType),
+		BotTgID:           int(req.BotTgId),
 		Code:              req.Code,
 		ChannelChatID:     req.ChannelChatID,
 		AdminChatID:       req.AdminChatID,
@@ -67,11 +67,6 @@ func (h *ChannelHandler) Create(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		returnError(w, r, log, http.StatusInternalServerError, "failed to create channel", err)
-		return
-	}
-
-	if err := h.ucB.UpdateChannelID(r.Context(), req.BotTgId, req.BotType, channel.ID); err != nil {
-		returnError(w, r, log, http.StatusInternalServerError, "failed to update bot's channel_id", err)
 		return
 	}
 
@@ -125,7 +120,7 @@ func (h *ChannelHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	channel, err := h.ucC.Update(r.Context(), entities.ChannelWithoutCode{
+	channel, err := h.uc.Update(r.Context(), entities.ChannelWithoutCode{
 		ID:                id,
 		ChannelChatID:     req.ChannelChatID,
 		AdminChatID:       req.AdminChatID,

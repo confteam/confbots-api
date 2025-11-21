@@ -38,7 +38,7 @@ func main() {
 	userUseCase := usecase.NewUserUseCase(userRepo)
 
 	botHandler := handler.NewBotHandler(botUseCase, log)
-	channelHandler := handler.NewChannelHandler(channelUseCase, botUseCase, log)
+	channelHandler := handler.NewChannelHandler(channelUseCase, log)
 	userHandler := handler.NewUserHandler(userUseCase, log)
 
 	srv := server.NewServer(cfg.HTTPServer, log, func(r chi.Router) {

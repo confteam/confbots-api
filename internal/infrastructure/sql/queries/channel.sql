@@ -1,7 +1,14 @@
 -- name: CreateChannel :one
-INSERT INTO channels (code, channel_chat_id, admin_chat_id, discussions_chat_id)
-VALUES ($1, $2, $3, $4)
-RETURNING *;
+WITH create_channel AS (
+  INSERT INTO channels (code, channel_chat_id, admin_chat_id, discussions_chat_id)
+  VALUES ($1, $2, $3, $4)
+  RETURNING *
+)
+UPDATE bots
+SET channel_id = create_channel.id
+FROM create_channel
+WHERE tgid = $5 AND type = $6
+RETURNING create_channel.*;
 
 -- name: UpdateChannel :one
 UPDATE channels

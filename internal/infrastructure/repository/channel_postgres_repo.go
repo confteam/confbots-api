@@ -23,11 +23,13 @@ const channelPkg = "infrastructure.repository.ChannelPostgresRepository"
 
 func (r *ChannelPostgresRepository) Create(
 	ctx context.Context,
-	channel entities.ChannelWithoutID,
+	channel entities.ChannelWithBotTgidAndType,
 ) (*entities.Channel, error) {
 	const op = channelPkg + ".Create"
 
 	newChannel, err := r.q.CreateChannel(ctx, db.CreateChannelParams{
+		Tgid:              int64(channel.BotTgID),
+		Type:              channel.BotType,
 		Code:              channel.Code,
 		ChannelChatID:     ptrPgInt8(channel.ChannelChatID),
 		AdminChatID:       ptrPgInt8(channel.AdminChatID),

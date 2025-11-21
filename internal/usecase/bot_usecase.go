@@ -42,13 +42,3 @@ func (uc *BotUseCase) Auth(
 
 	return newBot, nil
 }
-
-func (uc *BotUseCase) UpdateChannelID(ctx context.Context, tgid int64, botType entities.BotType, channelID int) error {
-	const op = botPkg + ".UpdateChannelID"
-
-	if err := uc.r.UpdateChannelID(ctx, tgid, botType, channelID); err != nil {
-		return fmt.Errorf("%s:%v", op, err)
-	}
-
-	return nil
-}
