@@ -11,6 +11,19 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const getUserIdByTgId = `-- name: GetUserIdByTgId :one
+SELECT id
+FROM users
+WHERE tgid = $1
+`
+
+func (q *Queries) GetUserIdByTgId(ctx context.Context, tgid int64) (int32, error) {
+	row := q.db.QueryRow(ctx, getUserIdByTgId, tgid)
+	var id int32
+	err := row.Scan(&id)
+	return id, err
+}
+
 const getUserRole = `-- name: GetUserRole :one
 SELECT role
 FROM user_channels

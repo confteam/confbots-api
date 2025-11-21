@@ -34,17 +34,17 @@ func (h *UserHandler) RegisterRoutes(r chi.Router) {
 
 const userPkg = "transport.http.handler.UserHandler"
 
-func (h *UserHandler) GetQueries(w http.ResponseWriter, r *http.Request, log *slog.Logger) (int, int) {
-	userIDStr := r.URL.Query().Get("userId")
+func (h *UserHandler) GetQueries(w http.ResponseWriter, r *http.Request, log *slog.Logger) (int64, int) {
+	tgIDStr := r.URL.Query().Get("tgId")
 	channelIDStr := r.URL.Query().Get("channelId")
-	if userIDStr == "" || channelIDStr == "" {
-		returnError(w, r, log, http.StatusBadRequest, "userId and channelId are required", nil)
+	if tgIDStr == "" || channelIDStr == "" {
+		returnError(w, r, log, http.StatusBadRequest, "tgId and channelId are required", nil)
 		return 0, 0
 	}
 
-	userID, err := strconv.Atoi(userIDStr)
+	tgID, err := strconv.Atoi(tgIDStr)
 	if err != nil {
-		returnError(w, r, log, http.StatusUnprocessableEntity, "failed to convert userId", err)
+		returnError(w, r, log, http.StatusUnprocessableEntity, "failed to convert tgid", err)
 		return 0, 0
 	}
 
@@ -55,11 +55,11 @@ func (h *UserHandler) GetQueries(w http.ResponseWriter, r *http.Request, log *sl
 	}
 
 	log.Info("query parameteres decoded",
-		slog.Int("user_id", userID),
+		slog.Int("tgid", tgID),
 		slog.Int("channel_id", channelID),
 	)
 
-	return userID, channelID
+	return int64(tgID), channelID
 }
 
 func (h *UserHandler) Upsert(w http.ResponseWriter, r *http.Request) {
@@ -105,7 +105,7 @@ func (h *UserHandler) UpdateRole(w http.ResponseWriter, r *http.Request) {
 
 	log := reqLogger(h.log, r, op)
 
-	userID, channelID := h.GetQueries(w, r, log)
+	tgID, channelID := h.GetQueries(w, r, log)
 
 	var req dto.UpdateUserRoleRequest
 	if !decodeJson(w, r, log, &req) {
@@ -120,14 +120,14 @@ func (h *UserHandler) UpdateRole(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.uc.UpdateRole(r.Context(), req.Role, userID, channelID); err != nil {
+	if err := h.uc.UpdateRole(r.Context(), req.Role, tgID, channelID); err != nil {
 		returnError(w, r, log, http.StatusInternalServerError, "failed to update user's role", err)
 		return
 	}
 
 	log.Info("updated user's role",
 		slog.String("role", string(req.Role)),
-		slog.Int("user_id", userID),
+		slog.Int64("tgid", tgID),
 		slog.Int("channel_id", channelID),
 	)
 
@@ -143,17 +143,17 @@ func (h *UserHandler) GetRole(w http.ResponseWriter, r *http.Request) {
 
 	log := reqLogger(h.log, r, op)
 
-	userID, channelID := h.GetQueries(w, r, log)
+	tgID, channelID := h.GetQueries(w, r, log)
 
-	role, err := h.uc.GetRole(r.Context(), userID, channelID)
+	role, err := h.uc.GetRole(r.Context(), tgID, channelID)
 	if err != nil {
 		returnError(w, r, log, http.StatusInternalServerError, "failed to get user's role", err)
 		return
 	}
 
-	log.Info("got user's role",
+	log.Info("got tg's role",
 		slog.String("role", string(role)),
-		slog.Int("user_id", userID),
+		slog.Int64("tgid", tgID),
 		slog.Int("channel_id", channelID),
 	)
 

@@ -31,8 +31,13 @@ func (uc *UserUseCase) Upsert(ctx context.Context, tgid int64, channelID int) (i
 	return id, nil
 }
 
-func (uc *UserUseCase) UpdateRole(ctx context.Context, role entities.Role, userID int, channelID int) error {
+func (uc *UserUseCase) UpdateRole(ctx context.Context, role entities.Role, tgid int64, channelID int) error {
 	const op = userPkg + ".UpdateRole"
+
+	userID, err := uc.r.GetIdByTgId(ctx, tgid)
+	if err != nil {
+		return fmt.Errorf("%s:%v", op, err)
+	}
 
 	if err := uc.r.UpdateRole(ctx, role, userID, channelID); err != nil {
 		return fmt.Errorf("%s:%v", op, err)
@@ -41,8 +46,13 @@ func (uc *UserUseCase) UpdateRole(ctx context.Context, role entities.Role, userI
 	return nil
 }
 
-func (uc *UserUseCase) GetRole(ctx context.Context, userID int, channelID int) (entities.Role, error) {
+func (uc *UserUseCase) GetRole(ctx context.Context, tgid int64, channelID int) (entities.Role, error) {
 	const op = userPkg + ".GetRole"
+
+	userID, err := uc.r.GetIdByTgId(ctx, tgid)
+	if err != nil {
+		return "", fmt.Errorf("%s:%v", op, err)
+	}
 
 	role, err := uc.r.GetRole(ctx, userID, channelID)
 	if err != nil {

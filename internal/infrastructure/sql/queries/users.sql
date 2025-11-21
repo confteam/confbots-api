@@ -14,6 +14,11 @@ upsert_user_channel AS (
 )
 SELECT id FROM upsert_user;
 
+-- name: GetUserIdByTgId :one
+SELECT id
+FROM users
+WHERE tgid = $1;
+
 -- name: UpdateUserRole :exec
 UPDATE user_channels
 SET role = $1

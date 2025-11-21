@@ -67,3 +67,14 @@ func (r *UserPostgresRepository) GetRole(ctx context.Context, userID int, channe
 
 	return entities.Role(*ptrString(role)), nil
 }
+
+func (r *UserPostgresRepository) GetIdByTgId(ctx context.Context, tgid int64) (int, error) {
+	const op = userPkg + ".GetIdByTgId"
+
+	id, err := r.q.GetUserIdByTgId(ctx, tgid)
+	if err != nil {
+		return 0, fmt.Errorf("%s:%v", op, err)
+	}
+
+	return int(id), nil
+}
