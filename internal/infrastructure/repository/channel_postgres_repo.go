@@ -7,7 +7,6 @@ import (
 	"github.com/confteam/confbots-api/db"
 	"github.com/confteam/confbots-api/internal/domain/entities"
 	"github.com/confteam/confbots-api/internal/domain/repositories"
-	"github.com/teris-io/shortid"
 )
 
 type ChannelPostgresRepository struct {
@@ -24,17 +23,12 @@ const channelPkg = "infrastructure.repository.ChannelPostgresRepository"
 
 func (r *ChannelPostgresRepository) Create(
 	ctx context.Context,
-	channel entities.ChannelWithoutIDAndCode,
+	channel entities.ChannelWithoutID,
 ) (*entities.Channel, error) {
 	const op = channelPkg + ".Create"
 
-	code, err := shortid.Generate()
-	if err != nil {
-		return nil, fmt.Errorf("%s:%v", op, err)
-	}
-
 	newChannel, err := r.q.CreateChannel(ctx, db.CreateChannelParams{
-		Code:              code,
+		Code:              channel.Code,
 		ChannelChatID:     ptrPgInt8(channel.ChannelChatID),
 		AdminChatID:       ptrPgInt8(channel.AdminChatID),
 		DiscussionsChatID: ptrPgInt8(channel.DiscussionsChatID),

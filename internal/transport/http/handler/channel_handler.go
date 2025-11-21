@@ -44,6 +44,7 @@ func (h *ChannelHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Info("request body decoded",
+		slog.String("code", req.Code),
 		slog.Int64("channel_chat_id", *req.ChannelChatID),
 		slog.Int64("admin_chat_id", *req.AdminChatID),
 		slog.Int64("discussions_chat_id", *req.DiscussionsChatID),
@@ -53,7 +54,8 @@ func (h *ChannelHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	channel, err := h.uc.Create(r.Context(), entities.ChannelWithoutIDAndCode{
+	channel, err := h.uc.Create(r.Context(), entities.ChannelWithoutID{
+		Code:              req.Code,
 		ChannelChatID:     req.ChannelChatID,
 		AdminChatID:       req.AdminChatID,
 		DiscussionsChatID: req.DiscussionsChatID,

@@ -22,7 +22,7 @@ const channelPkg = "usecase.ChannelUseCase"
 
 func (uc *ChannelUseCase) Create(
 	ctx context.Context,
-	channel entities.ChannelWithoutIDAndCode,
+	channel entities.ChannelWithoutID,
 ) (*entities.Channel, error) {
 	const op = channelPkg + ".Create"
 

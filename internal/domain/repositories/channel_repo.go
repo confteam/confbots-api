@@ -7,6 +7,6 @@ import (
 )
 
 type ChannelRepository interface {
-	Create(ctx context.Context, channel entities.ChannelWithoutIDAndCode) (*entities.Channel, error)
+	Create(ctx context.Context, channel entities.ChannelWithoutID) (*entities.Channel, error)
 	Update(ctx context.Context, channel entities.ChannelWithoutIDAndCode) (*entities.Channel, error)
 }

@@ -13,6 +13,7 @@ type ChannelResponse struct {
 }
 
 type CreateChannelRequest struct {
+	Code              string `json:"code" validate:"required"`
 	ChannelChatID     *int64 `json:"channel_chat_id,omitempty"`
 	AdminChatID       *int64 `json:"admin_chat_id,omitempty"`
 	DiscussionsChatID *int64 `json:"discussions_chat_id,omitempty"`
