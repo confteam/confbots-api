@@ -30,6 +30,8 @@ func (h *UserHandler) RegisterRoutes(r chi.Router) {
 	r.Post("/users/{id}", h.Upsert)
 	r.Patch("/users/role", h.UpdateRole)
 	r.Get("/users/role", h.GetRole)
+	r.Patch("/users/anonimity", h.ToggleAnonimity)
+	r.Get("/users/anonimity", h.GetAnonimity)
 }
 
 const userPkg = "transport.http.handler.UserHandler"
