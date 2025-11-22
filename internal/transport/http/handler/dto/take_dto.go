@@ -5,10 +5,10 @@ import resp "github.com/confteam/confbots-api/internal/transport/http/handler/re
 type TakeResponse struct {
 	ID             int    `json:"id"`
 	Status         string `json:"status"`
-	UserMessageID  int64  `json:"user_message_id"`
-	AdminMessageID int64  `json:"admin_message_id"`
-	UserChannelID  int    `json:"user_channel_id"`
-	ChannelID      int    `json:"channel_id"`
+	UserMessageID  int64  `json:"userMessageId"`
+	AdminMessageID int64  `json:"adminMessageId"`
+	UserChannelID  int    `json:"userChannelId"`
+	ChannelID      int    `json:"channelId"`
 }
 
 type CreateTakeRequest struct {

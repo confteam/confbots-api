@@ -71,3 +71,12 @@ func mapTakeToTakeResponse(take entities.Take) dto.TakeResponse {
 		ChannelID:      take.ChannelID,
 	}
 }
+
+func mapReplyToReplyResponse(reply entities.Reply) dto.ReplyResponse {
+	return dto.ReplyResponse{
+		ID:             reply.ID,
+		UserMessageID:  reply.UserMessageID,
+		AdminMessageID: reply.AdminMessageID,
+		TakeID:         reply.TakeID,
+	}
+}

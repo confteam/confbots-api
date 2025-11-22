@@ -39,3 +39,10 @@ CREATE TABLE takes (
   user_channel_id INTEGER REFERENCES user_channels(id) NOT NULL,
   channel_id INTEGER REFERENCES channels(id) NOT NULL
 );
+
+CREATE TABLE replies (
+  id SERIAL PRIMARY KEY,
+  user_message_id BIGINT NOT NULL,
+  admin_message_id BIGINT NOT NULL,
+  take_id INTEGER REFERENCES takes(id) NOT NULL
+);

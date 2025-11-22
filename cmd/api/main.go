@@ -33,22 +33,26 @@ func main() {
 	channelRepo := repository.NewChannelPostgresRepository(queries)
 	userRepo := repository.NewUserPostgresRepository(queries)
 	takeRepo := repository.NewTakePostgresRepository(queries)
+	replyRepo := repository.NewReplyPostgresRepository(queries)
 
 	botUseCase := usecase.NewBotUseCase(botRepo)
 	channelUseCase := usecase.NewChannelUseCase(channelRepo)
 	userUseCase := usecase.NewUserUseCase(userRepo)
 	takeUseCase := usecase.NewTakeUseCase(userRepo, takeRepo)
+	replyUseCase := usecase.NewReplyUseCase(replyRepo)
 
 	botHandler := handler.NewBotHandler(botUseCase, log)
 	channelHandler := handler.NewChannelHandler(channelUseCase, log)
 	userHandler := handler.NewUserHandler(userUseCase, log)
 	takeHandler := handler.NewTakeHandler(takeUseCase, log)
+	replyHandler := handler.NewReplyHandler(replyUseCase, log)
 
 	srv := server.NewServer(cfg.HTTPServer, log, func(r chi.Router) {
 		botHandler.RegisterRoutes(r)
 		channelHandler.RegisterRoutes(r)
 		userHandler.RegisterRoutes(r)
 		takeHandler.RegisterRoutes(r)
+		replyHandler.RegisterRoutes(r)
 	})
 
 	// graceful shutdown

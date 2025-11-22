@@ -24,6 +24,13 @@ type Channel struct {
 	Decorations       pgtype.Text
 }
 
+type Reply struct {
+	ID             int32
+	UserMessageID  int64
+	AdminMessageID int64
+	TakeID         int32
+}
+
 type Take struct {
 	ID             int32
 	Status         string
