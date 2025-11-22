@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/confteam/confbots-api/internal/domain/entities"
 	"github.com/confteam/confbots-api/internal/domain/repositories"
 )
 
@@ -20,7 +19,7 @@ func NewUserUseCase(r repositories.UserRepository) *UserUseCase {
 
 const userPkg = "usecase.UserUseCase"
 
-func (uc *UserUseCase) Upsert(ctx context.Context, tgid int64, channelID int, role entities.Role) (int, error) {
+func (uc *UserUseCase) Upsert(ctx context.Context, tgid int64, channelID int, role string) (int, error) {
 	const op = userPkg + ".Upsert"
 
 	id, err := uc.r.Upsert(ctx, tgid, channelID, role)
@@ -31,7 +30,7 @@ func (uc *UserUseCase) Upsert(ctx context.Context, tgid int64, channelID int, ro
 	return id, nil
 }
 
-func (uc *UserUseCase) UpdateRole(ctx context.Context, role entities.Role, tgid int64, channelID int) error {
+func (uc *UserUseCase) UpdateRole(ctx context.Context, role string, tgid int64, channelID int) error {
 	const op = userPkg + ".UpdateRole"
 
 	userID, err := uc.r.GetIdByTgId(ctx, tgid)
@@ -46,7 +45,7 @@ func (uc *UserUseCase) UpdateRole(ctx context.Context, role entities.Role, tgid 
 	return nil
 }
 
-func (uc *UserUseCase) GetRole(ctx context.Context, tgid int64, channelID int) (entities.Role, error) {
+func (uc *UserUseCase) GetRole(ctx context.Context, tgid int64, channelID int) (string, error) {
 	const op = userPkg + ".GetRole"
 
 	userID, err := uc.r.GetIdByTgId(ctx, tgid)
@@ -59,7 +58,7 @@ func (uc *UserUseCase) GetRole(ctx context.Context, tgid int64, channelID int) (
 		return "", fmt.Errorf("%s:%v", op, err)
 	}
 
-	return entities.Role(role), nil
+	return role, nil
 }
 
 func (uc *UserUseCase) GetAnonimity(ctx context.Context, tgid int64, channelID int) (bool, error) {

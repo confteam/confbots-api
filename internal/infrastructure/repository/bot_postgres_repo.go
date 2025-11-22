@@ -26,7 +26,7 @@ const botPkg = "infrasctructure.repository.BotPostgresRepository"
 func (r *BotPostgresRepository) FindBotByTgIdAndType(
 	ctx context.Context,
 	tgid int64,
-	botType entities.BotType,
+	botType string,
 ) (*entities.BotWithChannel, error) {
 	const op = botPkg + "FindBotByTgIdAndType"
 
@@ -56,13 +56,13 @@ func (r *BotPostgresRepository) FindBotByTgIdAndType(
 	return &entities.BotWithChannel{
 		ID:      botWithChannel.ID,
 		TgID:    botWithChannel.Tgid,
-		Type:    entities.BotType(botWithChannel.Type),
+		Type:    botWithChannel.Type,
 		Channel: channel,
 	}, nil
 }
 
 func (r *BotPostgresRepository) Create(
-	ctx context.Context, tgid int64, botType entities.BotType,
+	ctx context.Context, tgid int64, botType string,
 ) (*entities.BotWithChannel, error) {
 	const op = botPkg + ".Create"
 
@@ -77,7 +77,7 @@ func (r *BotPostgresRepository) Create(
 	return &entities.BotWithChannel{
 		ID:      bot.ID,
 		TgID:    bot.Tgid,
-		Type:    entities.BotType(bot.Type),
+		Type:    bot.Type,
 		Channel: nil,
 	}, nil
 }

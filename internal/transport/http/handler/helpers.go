@@ -60,3 +60,14 @@ func mapChannelToChannelResponse(channel entities.Channel) dto.ChannelResponse {
 		Decorations:       channel.Decorations,
 	}
 }
+
+func mapTakeToTakeResponse(take entities.Take) dto.TakeResponse {
+	return dto.TakeResponse{
+		ID:             take.ID,
+		Status:         take.Status,
+		UserMessageID:  take.UserMessageID,
+		AdminMessageID: take.AdminMessageID,
+		UserChannelID:  take.UserChannelID,
+		ChannelID:      take.ChannelID,
+	}
+}

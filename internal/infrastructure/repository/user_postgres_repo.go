@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/confteam/confbots-api/db"
-	"github.com/confteam/confbots-api/internal/domain/entities"
 	"github.com/confteam/confbots-api/internal/domain/repositories"
 )
 
@@ -21,7 +20,7 @@ func NewUserPostgresRepository(q *db.Queries) repositories.UserRepository {
 
 const userPkg = "infrasctructure.repository.UserPostgresRepository"
 
-func (r *UserPostgresRepository) Upsert(ctx context.Context, tgid int64, channelID int, role entities.Role) (int, error) {
+func (r *UserPostgresRepository) Upsert(ctx context.Context, tgid int64, channelID int, role string) (int, error) {
 	const op = userPkg + ".Upsert"
 
 	id, err := r.q.UpsertUser(ctx, db.UpsertUserParams{
@@ -36,7 +35,7 @@ func (r *UserPostgresRepository) Upsert(ctx context.Context, tgid int64, channel
 	return int(id), nil
 }
 
-func (r *UserPostgresRepository) UpdateRole(ctx context.Context, role entities.Role, userID int, channelID int) error {
+func (r *UserPostgresRepository) UpdateRole(ctx context.Context, role string, userID int, channelID int) error {
 	const op = userPkg + ".UpdateRole"
 
 	if err := r.q.UpdateUserRole(ctx, db.UpdateUserRoleParams{
@@ -50,7 +49,7 @@ func (r *UserPostgresRepository) UpdateRole(ctx context.Context, role entities.R
 	return nil
 }
 
-func (r *UserPostgresRepository) GetRole(ctx context.Context, userID int, channelID int) (entities.Role, error) {
+func (r *UserPostgresRepository) GetRole(ctx context.Context, userID int, channelID int) (string, error) {
 	const op = userPkg + ".GetRole"
 
 	role, err := r.q.GetUserRole(ctx, db.GetUserRoleParams{
@@ -61,7 +60,7 @@ func (r *UserPostgresRepository) GetRole(ctx context.Context, userID int, channe
 		return "", fmt.Errorf("%s:%v", op, err)
 	}
 
-	return entities.Role(role), nil
+	return role, nil
 }
 
 func (r *UserPostgresRepository) GetIdByTgId(ctx context.Context, tgid int64) (int, error) {
@@ -101,4 +100,18 @@ func (r *UserPostgresRepository) ToggleAnonimity(ctx context.Context, userID int
 	}
 
 	return anonimity.Bool, nil
+}
+
+func (r *UserPostgresRepository) GetUserChannelID(ctx context.Context, userID int, channelID int) (int, error) {
+	const op = userPkg + ".GetUserChannel"
+
+	id, err := r.q.GetUserChannelId(ctx, db.GetUserChannelIdParams{
+		UserID:    int32(userID),
+		ChannelID: int32(channelID),
+	})
+	if err != nil {
+		return 0, fmt.Errorf("%s:%v", op, err)
+	}
+
+	return int(id), nil
 }

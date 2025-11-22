@@ -29,6 +29,24 @@ func (q *Queries) GetUserAnonimity(ctx context.Context, arg GetUserAnonimityPara
 	return anonimity, err
 }
 
+const getUserChannelId = `-- name: GetUserChannelId :one
+SELECT id
+FROM user_channels
+WHERE user_id = $1 AND channel_id = $2
+`
+
+type GetUserChannelIdParams struct {
+	UserID    int32
+	ChannelID int32
+}
+
+func (q *Queries) GetUserChannelId(ctx context.Context, arg GetUserChannelIdParams) (int32, error) {
+	row := q.db.QueryRow(ctx, getUserChannelId, arg.UserID, arg.ChannelID)
+	var id int32
+	err := row.Scan(&id)
+	return id, err
+}
+
 const getUserIdByTgId = `-- name: GetUserIdByTgId :one
 SELECT id
 FROM users

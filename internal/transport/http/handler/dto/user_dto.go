@@ -1,13 +1,12 @@
 package dto
 
 import (
-	"github.com/confteam/confbots-api/internal/domain/entities"
 	resp "github.com/confteam/confbots-api/internal/transport/http/handler/response"
 )
 
 type UpsertUserRequest struct {
-	ChannelID int           `json:"channelId" validate:"required"`
-	Role      entities.Role `json:"role" validate:"required"`
+	ChannelID int    `json:"channelId" validate:"required"`
+	Role      string `json:"role" validate:"required"`
 }
 
 type UpsertUserResponse struct {
@@ -15,7 +14,7 @@ type UpsertUserResponse struct {
 }
 
 type UpdateUserRoleRequest struct {
-	Role entities.Role `json:"role" validate:"required"`
+	Role string `json:"role" validate:"required"`
 }
 
 type UpdateUserRoleResponse struct {
@@ -23,7 +22,7 @@ type UpdateUserRoleResponse struct {
 }
 
 type GetUserRoleResponse struct {
-	Role entities.Role `json:"role"`
+	Role string `json:"role"`
 	resp.Response
 }
 

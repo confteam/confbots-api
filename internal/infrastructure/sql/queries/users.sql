@@ -39,3 +39,8 @@ UPDATE user_channels
 SET anonimity = NOT anonimity
 WHERE user_id = $1 AND channel_id = $2
 RETURNING anonimity;
+
+-- name: GetUserChannelId :one
+SELECT id
+FROM user_channels
+WHERE user_id = $1 AND channel_id = $2;

@@ -23,7 +23,7 @@ const botPkg = "usecase.BotUseCase"
 func (uc *BotUseCase) Auth(
 	ctx context.Context,
 	tgid int64,
-	botType entities.BotType,
+	botType string,
 ) (*entities.BotWithChannel, error) {
 	const op = botPkg + ".Auth"
 	bot, err := uc.r.FindBotByTgIdAndType(ctx, tgid, botType)
