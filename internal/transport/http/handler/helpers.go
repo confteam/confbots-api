@@ -78,5 +78,6 @@ func mapReplyToReplyResponse(reply entities.Reply) dto.ReplyResponse {
 		UserMessageID:  reply.UserMessageID,
 		AdminMessageID: reply.AdminMessageID,
 		TakeID:         reply.TakeID,
+		ChannelID:      reply.ChannelID,
 	}
 }

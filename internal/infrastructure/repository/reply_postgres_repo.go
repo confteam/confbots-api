@@ -21,13 +21,14 @@ func NewReplyPostgresRepository(q *db.Queries) repositories.ReplyRepository {
 
 const replyPkg = "infrastructure.repository.ReplyPostgresRepository"
 
-func (r *ReplyPostgresRepository) Create(ctx context.Context, userMessageID int64, adminMessageID int64, takeID int) (int, error) {
+func (r *ReplyPostgresRepository) Create(ctx context.Context, userMessageID int64, adminMessageID int64, takeID int, channelID int) (int, error) {
 	const op = replyPkg + ".Create"
 
 	id, err := r.q.CreateReply(ctx, db.CreateReplyParams{
 		UserMessageID:  userMessageID,
 		AdminMessageID: adminMessageID,
 		TakeID:         int32(takeID),
+		ChannelID:      int32(channelID),
 	})
 	if err != nil {
 		return 0, fmt.Errorf("%s:%v", op, err)
@@ -36,12 +37,13 @@ func (r *ReplyPostgresRepository) Create(ctx context.Context, userMessageID int6
 	return int(id), nil
 }
 
-func (r *ReplyPostgresRepository) GetByMsgId(ctx context.Context, messageID int64, takeID int) (*entities.Reply, error) {
+func (r *ReplyPostgresRepository) GetByMsgId(ctx context.Context, messageID int64, takeID int, channelID int) (*entities.Reply, error) {
 	const op = replyPkg + ".GetByMsgId"
 
 	reply, err := r.q.GetReplyByMsgId(ctx, db.GetReplyByMsgIdParams{
 		UserMessageID: messageID,
 		TakeID:        int32(takeID),
+		ChannelID:     int32(channelID),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("%s:%v", op, err)
@@ -52,5 +54,6 @@ func (r *ReplyPostgresRepository) GetByMsgId(ctx context.Context, messageID int6
 		UserMessageID:  reply.UserMessageID,
 		AdminMessageID: reply.AdminMessageID,
 		TakeID:         int(reply.TakeID),
+		ChannelID:      int(reply.ChannelID),
 	}, nil
 }

@@ -10,8 +10,8 @@ import (
 )
 
 const createReply = `-- name: CreateReply :one
-INSERT INTO replies (user_message_id, admin_message_id, take_id)
-VALUES ($1, $2, $3)
+INSERT INTO replies (user_message_id, admin_message_id, take_id, channel_id)
+VALUES ($1, $2, $3, $4)
 RETURNING id
 `
 
@@ -19,34 +19,42 @@ type CreateReplyParams struct {
 	UserMessageID  int64
 	AdminMessageID int64
 	TakeID         int32
+	ChannelID      int32
 }
 
 func (q *Queries) CreateReply(ctx context.Context, arg CreateReplyParams) (int32, error) {
-	row := q.db.QueryRow(ctx, createReply, arg.UserMessageID, arg.AdminMessageID, arg.TakeID)
+	row := q.db.QueryRow(ctx, createReply,
+		arg.UserMessageID,
+		arg.AdminMessageID,
+		arg.TakeID,
+		arg.ChannelID,
+	)
 	var id int32
 	err := row.Scan(&id)
 	return id, err
 }
 
 const getReplyByMsgId = `-- name: GetReplyByMsgId :one
-SELECT id, user_message_id, admin_message_id, take_id
+SELECT id, user_message_id, admin_message_id, take_id, channel_id
 FROM replies
-WHERE (user_message_id = $1 OR admin_message_id = $1) AND take_id = $2
+WHERE (user_message_id = $1 OR admin_message_id = $1) AND take_id = $2 AND channel_id = $3
 `
 
 type GetReplyByMsgIdParams struct {
 	UserMessageID int64
 	TakeID        int32
+	ChannelID     int32
 }
 
 func (q *Queries) GetReplyByMsgId(ctx context.Context, arg GetReplyByMsgIdParams) (Reply, error) {
-	row := q.db.QueryRow(ctx, getReplyByMsgId, arg.UserMessageID, arg.TakeID)
+	row := q.db.QueryRow(ctx, getReplyByMsgId, arg.UserMessageID, arg.TakeID, arg.ChannelID)
 	var i Reply
 	err := row.Scan(
 		&i.ID,
 		&i.UserMessageID,
 		&i.AdminMessageID,
 		&i.TakeID,
+		&i.ChannelID,
 	)
 	return i, err
 }

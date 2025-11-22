@@ -29,6 +29,7 @@ type Reply struct {
 	UserMessageID  int64
 	AdminMessageID int64
 	TakeID         int32
+	ChannelID      int32
 }
 
 type Take struct {

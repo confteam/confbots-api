@@ -47,13 +47,14 @@ func (h *ReplyHandler) Create(w http.ResponseWriter, r *http.Request) {
 		slog.Int64("user_message_id", req.UserMessageID),
 		slog.Int64("admin_message_id", req.AdminMessageID),
 		slog.Int("take_id", req.TakeID),
+		slog.Int("channel_id", req.ChannelID),
 	)
 
 	if !validate(w, r, log, h.val, req) {
 		return
 	}
 
-	id, err := h.uc.Create(r.Context(), req.UserMessageID, req.AdminMessageID, req.TakeID)
+	id, err := h.uc.Create(r.Context(), req.UserMessageID, req.AdminMessageID, req.TakeID, req.ChannelID)
 	if err != nil {
 		returnError(w, r, log, http.StatusInternalServerError, "failed to create reply", nil)
 		return
@@ -64,6 +65,7 @@ func (h *ReplyHandler) Create(w http.ResponseWriter, r *http.Request) {
 		slog.Int64("user_message_id", req.UserMessageID),
 		slog.Int64("admin_message_id", req.AdminMessageID),
 		slog.Int("take_id", req.TakeID),
+		slog.Int("channel_id", req.ChannelID),
 	)
 
 	response := dto.CreateReplyResponse{
@@ -97,9 +99,20 @@ func (h *ReplyHandler) GetByMsgID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Info("got url params", slog.String("tgid", tgIDStr))
+	channelIDStr := r.URL.Query().Get("takeId")
+	if channelIDStr == "" {
+		returnError(w, r, log, http.StatusBadRequest, "channelId is required", nil)
+		return
+	}
+	channelID, err := strconv.Atoi(channelIDStr)
+	if err != nil {
+		returnError(w, r, log, http.StatusUnprocessableEntity, "failed to convert channelId", nil)
+		return
+	}
 
-	reply, err := h.uc.GetByMsgID(r.Context(), int64(tgID), takeID)
+	log.Info("got url params", slog.String("tgid", tgIDStr), slog.String("channel_id", channelIDStr))
+
+	reply, err := h.uc.GetByMsgID(r.Context(), int64(tgID), takeID, channelID)
 	if err != nil {
 		returnError(w, r, log, http.StatusNotFound, "reply not found", err)
 		return
@@ -110,6 +123,7 @@ func (h *ReplyHandler) GetByMsgID(w http.ResponseWriter, r *http.Request) {
 		slog.Int64("user_message_id", reply.UserMessageID),
 		slog.Int64("admin_message_id", reply.AdminMessageID),
 		slog.Int("take_id", reply.TakeID),
+		slog.Int("channel_id", reply.ChannelID),
 	)
 
 	response := dto.GetReplyByMsgIDResponse{
