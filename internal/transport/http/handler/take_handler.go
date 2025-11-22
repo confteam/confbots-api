@@ -10,6 +10,7 @@ import (
 	"github.com/confteam/confbots-api/internal/usecase"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
+	"github.com/jackc/pgx/v5"
 )
 
 type TakeHandler struct {
@@ -176,7 +177,11 @@ func (h *TakeHandler) GetByMsgId(w http.ResponseWriter, r *http.Request) {
 
 	take, err := h.uc.GetByMsgId(r.Context(), int64(messageID), channelID)
 	if err != nil {
-		returnError(w, r, log, http.StatusNotFound, "take not found", err)
+		if err == pgx.ErrNoRows {
+			returnError(w, r, log, http.StatusNotFound, "take not found", nil)
+			return
+		}
+		returnError(w, r, log, http.StatusInternalServerError, "failed to get take", err)
 		return
 	}
 

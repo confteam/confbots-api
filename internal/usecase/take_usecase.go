@@ -7,6 +7,7 @@ import (
 
 	"github.com/confteam/confbots-api/internal/domain/entities"
 	"github.com/confteam/confbots-api/internal/domain/repositories"
+	"github.com/jackc/pgx/v5"
 )
 
 type TakeUseCase struct {
@@ -69,8 +70,8 @@ func (uc *TakeUseCase) GetByMsgId(ctx context.Context, messageID int64, channelI
 
 	take, err := uc.rT.GetByMsgID(ctx, messageID, channelID)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("take not found")
+		if err == pgx.ErrNoRows {
+			return nil, err
 		}
 		return nil, fmt.Errorf("%s:%v", op, err)
 	}

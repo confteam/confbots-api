@@ -7,6 +7,7 @@ import (
 	"github.com/confteam/confbots-api/db"
 	"github.com/confteam/confbots-api/internal/domain/entities"
 	"github.com/confteam/confbots-api/internal/domain/repositories"
+	"github.com/jackc/pgx/v5"
 )
 
 type TakePostgresRepository struct {
@@ -72,6 +73,9 @@ func (r *TakePostgresRepository) GetByMsgID(ctx context.Context, messageID int64
 		ChannelID:     int32(channelID),
 	})
 	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, err
+		}
 		return nil, fmt.Errorf("%s:%v", op, err)
 	}
 
