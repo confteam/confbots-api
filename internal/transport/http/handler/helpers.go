@@ -4,6 +4,8 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/confteam/confbots-api/internal/domain/entities"
+	"github.com/confteam/confbots-api/internal/transport/http/handler/dto"
 	resp "github.com/confteam/confbots-api/internal/transport/http/handler/response"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
@@ -46,4 +48,15 @@ func validate(w http.ResponseWriter, r *http.Request, log *slog.Logger, val *val
 		return false
 	}
 	return true
+}
+
+func mapChannelToChannelResponse(channel entities.Channel) dto.ChannelResponse {
+	return dto.ChannelResponse{
+		ID:                channel.ID,
+		Code:              channel.Code,
+		ChannelChatID:     channel.ChannelChatID,
+		AdminChatID:       channel.AdminChatID,
+		DiscussionsChatID: channel.DiscussionsChatID,
+		Decorations:       channel.Decorations,
+	}
 }

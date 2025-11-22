@@ -72,7 +72,7 @@ func (h *ChannelHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	response := dto.CreateChannelResponse{
 		Response: resp.OK(),
-		ID:       channel.ID,
+		Channel:  mapChannelToChannelResponse(*channel),
 	}
 
 	log.Info("channel created",

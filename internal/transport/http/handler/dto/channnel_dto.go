@@ -26,7 +26,7 @@ type CreateChannelRequest struct {
 
 type CreateChannelResponse struct {
 	resp.Response `json:"response"`
-	ID            int `json:"id"`
+	Channel       ChannelResponse `json:"channel"`
 }
 
 type UpdateChannelRequest struct {
