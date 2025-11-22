@@ -37,12 +37,11 @@ func (r *ReplyPostgresRepository) Create(ctx context.Context, userMessageID int6
 	return int(id), nil
 }
 
-func (r *ReplyPostgresRepository) GetByMsgId(ctx context.Context, messageID int64, takeID int, channelID int) (*entities.Reply, error) {
+func (r *ReplyPostgresRepository) GetByMsgId(ctx context.Context, messageID int64, channelID int) (*entities.Reply, error) {
 	const op = replyPkg + ".GetByMsgId"
 
 	reply, err := r.q.GetReplyByMsgId(ctx, db.GetReplyByMsgIdParams{
 		UserMessageID: messageID,
-		TakeID:        int32(takeID),
 		ChannelID:     int32(channelID),
 	})
 	if err != nil {

@@ -31,10 +31,10 @@ func (uc *ReplyUseCase) Create(ctx context.Context, userMessageID int64, adminMe
 	return id, nil
 }
 
-func (uc *ReplyUseCase) GetByMsgID(ctx context.Context, messageID int64, takeID int, channelID int) (*entities.Reply, error) {
+func (uc *ReplyUseCase) GetByMsgID(ctx context.Context, messageID int64, channelID int) (*entities.Reply, error) {
 	const op = replyPkg + ".GetByMsgID"
 
-	reply, err := uc.r.GetByMsgId(ctx, messageID, takeID, channelID)
+	reply, err := uc.r.GetByMsgId(ctx, messageID, channelID)
 	if err != nil {
 		return nil, fmt.Errorf("%s:%v", op, err)
 	}

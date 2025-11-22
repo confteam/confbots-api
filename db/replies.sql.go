@@ -37,17 +37,16 @@ func (q *Queries) CreateReply(ctx context.Context, arg CreateReplyParams) (int32
 const getReplyByMsgId = `-- name: GetReplyByMsgId :one
 SELECT id, user_message_id, admin_message_id, take_id, channel_id
 FROM replies
-WHERE (user_message_id = $1 OR admin_message_id = $1) AND take_id = $2 AND channel_id = $3
+WHERE (user_message_id = $1 OR admin_message_id = $1) AND channel_id = $2
 `
 
 type GetReplyByMsgIdParams struct {
 	UserMessageID int64
-	TakeID        int32
 	ChannelID     int32
 }
 
 func (q *Queries) GetReplyByMsgId(ctx context.Context, arg GetReplyByMsgIdParams) (Reply, error) {
-	row := q.db.QueryRow(ctx, getReplyByMsgId, arg.UserMessageID, arg.TakeID, arg.ChannelID)
+	row := q.db.QueryRow(ctx, getReplyByMsgId, arg.UserMessageID, arg.ChannelID)
 	var i Reply
 	err := row.Scan(
 		&i.ID,

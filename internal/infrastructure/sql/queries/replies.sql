@@ -6,4 +6,4 @@ RETURNING id;
 -- name: GetReplyByMsgId :one
 SELECT *
 FROM replies
-WHERE (user_message_id = $1 OR admin_message_id = $1) AND take_id = $2 AND channel_id = $3;
+WHERE (user_message_id = $1 OR admin_message_id = $1) AND channel_id = $2;

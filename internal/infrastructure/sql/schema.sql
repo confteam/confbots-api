@@ -45,7 +45,5 @@ CREATE TABLE replies (
   user_message_id BIGINT NOT NULL,
   admin_message_id BIGINT NOT NULL,
   take_id INTEGER REFERENCES takes(id) NOT NULL,
-  channel_id INTEGER REFERENCES channels(id) NOT NULL,
-
-  CONSTRAINT replies_take_id_channel_id_unique UNIQUE (take_id, channel_id)
+  channel_id INTEGER REFERENCES channels(id) NOT NULL
 );
