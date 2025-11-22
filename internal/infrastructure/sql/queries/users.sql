@@ -19,6 +19,11 @@ SELECT id
 FROM users
 WHERE tgid = $1;
 
+-- name: GetUserTgIdById :one
+SELECT tgid
+FROM users
+WHERE id = $1;
+
 -- name: UpdateUserRole :exec
 UPDATE user_channels
 SET role = $1
@@ -44,3 +49,8 @@ RETURNING anonimity;
 SELECT id
 FROM user_channels
 WHERE user_id = $1 AND channel_id = $2;
+
+-- name: GetUserChannelById :one
+SELECT *
+FROM user_channels
+WHERE id = $1;

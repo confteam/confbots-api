@@ -1,0 +1,2 @@
+ALTER TABLE takes
+ALTER COLUMN status SET NOT NULL;

@@ -27,3 +27,12 @@ type GetTakeResponse struct {
 	Take TakeResponse `json:"take"`
 	resp.Response
 }
+
+type UpdateTakeStatusRequest struct {
+	Status string `json:"status" validate:"required"`
+}
+
+type GetTakeAuthorResponse struct {
+	TgID int64 `json:"tgid"`
+	resp.Response
+}

@@ -77,3 +77,40 @@ func (uc *TakeUseCase) GetByMsgId(ctx context.Context, messageID int64, channelI
 
 	return take, nil
 }
+
+func (uc *TakeUseCase) UpdateStatus(ctx context.Context, id int, channelID int) error {
+	const op = takePkg + ".UpdateStatus"
+
+	if err := uc.rT.UpdateStatus(ctx, id, channelID); err != nil {
+		if err == sql.ErrNoRows {
+			return fmt.Errorf("take not found")
+		}
+		return fmt.Errorf("%s:%v", op, err)
+	}
+
+	return nil
+}
+
+func (uc *TakeUseCase) GetTakeAuthor(ctx context.Context, id int, channelID int) (int64, error) {
+	const op = takePkg + ".GetTakeAuthor"
+
+	take, err := uc.rT.GetByID(ctx, id, channelID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return 0, fmt.Errorf("take not found")
+		}
+		return 0, fmt.Errorf("%s:%v", op, err)
+	}
+
+	userChannel, err := uc.rU.GetUserChannelByID(ctx, take.UserChannelID)
+	if err != nil {
+		return 0, fmt.Errorf("%s:%v", op, err)
+	}
+
+	tgid, err := uc.rU.GetTgIdById(ctx, userChannel.UserID)
+	if err != nil {
+		return 0, fmt.Errorf("%s:%v", op, err)
+	}
+
+	return tgid, nil
+}

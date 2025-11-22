@@ -84,3 +84,16 @@ func (r *TakePostgresRepository) GetByMsgID(ctx context.Context, messageID int64
 		ChannelID:      int(take.ChannelID),
 	}, nil
 }
+
+func (r *TakePostgresRepository) UpdateStatus(ctx context.Context, id int, channelID int) error {
+	const op = takePkg + ".UpdateStatus"
+
+	if err := r.q.UpdateTakeStatus(ctx, db.UpdateTakeStatusParams{
+		ID:        int32(id),
+		ChannelID: int32(channelID),
+	}); err != nil {
+		return fmt.Errorf("%s:%v", op, err)
+	}
+
+	return nil
+}

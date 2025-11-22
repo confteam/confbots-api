@@ -29,6 +29,25 @@ func (q *Queries) GetUserAnonimity(ctx context.Context, arg GetUserAnonimityPara
 	return anonimity, err
 }
 
+const getUserChannelById = `-- name: GetUserChannelById :one
+SELECT id, user_id, channel_id, role, anonimity
+FROM user_channels
+WHERE id = $1
+`
+
+func (q *Queries) GetUserChannelById(ctx context.Context, id int32) (UserChannel, error) {
+	row := q.db.QueryRow(ctx, getUserChannelById, id)
+	var i UserChannel
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.ChannelID,
+		&i.Role,
+		&i.Anonimity,
+	)
+	return i, err
+}
+
 const getUserChannelId = `-- name: GetUserChannelId :one
 SELECT id
 FROM user_channels
@@ -76,6 +95,19 @@ func (q *Queries) GetUserRole(ctx context.Context, arg GetUserRoleParams) (strin
 	var role string
 	err := row.Scan(&role)
 	return role, err
+}
+
+const getUserTgIdById = `-- name: GetUserTgIdById :one
+SELECT tgid
+FROM users
+WHERE id = $1
+`
+
+func (q *Queries) GetUserTgIdById(ctx context.Context, id int32) (int64, error) {
+	row := q.db.QueryRow(ctx, getUserTgIdById, id)
+	var tgid int64
+	err := row.Scan(&tgid)
+	return tgid, err
 }
 
 const toggleUserAnonimity = `-- name: ToggleUserAnonimity :one

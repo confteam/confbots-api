@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/confteam/confbots-api/db"
+	"github.com/confteam/confbots-api/internal/domain/entities"
 	"github.com/confteam/confbots-api/internal/domain/repositories"
 )
 
@@ -74,6 +75,17 @@ func (r *UserPostgresRepository) GetIdByTgId(ctx context.Context, tgid int64) (i
 	return int(id), nil
 }
 
+func (r *UserPostgresRepository) GetTgIdById(ctx context.Context, id int) (int64, error) {
+	const op = userPkg + ".GetTgIdById"
+
+	tgid, err := r.q.GetUserTgIdById(ctx, int32(id))
+	if err != nil {
+		return 0, fmt.Errorf("%s:%v", op, err)
+	}
+
+	return tgid, nil
+}
+
 func (r *UserPostgresRepository) GetAnonimity(ctx context.Context, userID int, channelID int) (bool, error) {
 	const op = userPkg + ".GetAnonimity"
 
@@ -114,4 +126,21 @@ func (r *UserPostgresRepository) GetUserChannelID(ctx context.Context, userID in
 	}
 
 	return int(id), nil
+}
+
+func (r *UserPostgresRepository) GetUserChannelByID(ctx context.Context, id int) (*entities.UserChannel, error) {
+	const op = userPkg + ".GetUserChannel"
+
+	uc, err := r.q.GetUserChannelById(ctx, int32(id))
+	if err != nil {
+		return nil, fmt.Errorf("%s:%v", op, err)
+	}
+
+	return &entities.UserChannel{
+		ID:        int(uc.ID),
+		UserID:    int(uc.UserID),
+		ChannelID: int(uc.ChannelID),
+		Role:      uc.Role,
+		Anonimity: uc.Anonimity.Bool,
+	}, nil
 }

@@ -10,4 +10,5 @@ type TakeRepository interface {
 	Create(ctx context.Context, userMessageID int64, adminMessageID int64, userChannelID int, channelID int) (*entities.Take, error)
 	GetByID(ctx context.Context, id int, channelID int) (*entities.Take, error)
 	GetByMsgID(ctx context.Context, messageID int64, channelID int) (*entities.Take, error)
+	UpdateStatus(ctx context.Context, id int, channelID int) error
 }

@@ -26,7 +26,7 @@ type Channel struct {
 
 type Take struct {
 	ID             int32
-	Status         pgtype.Text
+	Status         string
 	UserMessageID  int64
 	AdminMessageID int64
 	UserChannelID  int32

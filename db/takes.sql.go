@@ -59,18 +59,9 @@ type GetTakeByIdParams struct {
 	ChannelID int32
 }
 
-type GetTakeByIdRow struct {
-	ID             int32
-	Status         string
-	UserMessageID  int64
-	AdminMessageID int64
-	UserChannelID  int32
-	ChannelID      int32
-}
-
-func (q *Queries) GetTakeById(ctx context.Context, arg GetTakeByIdParams) (GetTakeByIdRow, error) {
+func (q *Queries) GetTakeById(ctx context.Context, arg GetTakeByIdParams) (Take, error) {
 	row := q.db.QueryRow(ctx, getTakeById, arg.ID, arg.ChannelID)
-	var i GetTakeByIdRow
+	var i Take
 	err := row.Scan(
 		&i.ID,
 		&i.Status,
@@ -85,7 +76,7 @@ func (q *Queries) GetTakeById(ctx context.Context, arg GetTakeByIdParams) (GetTa
 const getTakeByMsgId = `-- name: GetTakeByMsgId :one
 SELECT id, status, user_message_id, admin_message_id, user_channel_id, channel_id
 FROM takes
-WHERE user_message_id = $1 OR admin_message_id = $1 AND channel_id = $2
+WHERE (user_message_id = $1 OR admin_message_id = $1) AND channel_id = $2
 `
 
 type GetTakeByMsgIdParams struct {
@@ -93,18 +84,9 @@ type GetTakeByMsgIdParams struct {
 	ChannelID     int32
 }
 
-type GetTakeByMsgIdRow struct {
-	ID             int32
-	Status         string
-	UserMessageID  int64
-	AdminMessageID int64
-	UserChannelID  int32
-	ChannelID      int32
-}
-
-func (q *Queries) GetTakeByMsgId(ctx context.Context, arg GetTakeByMsgIdParams) (GetTakeByMsgIdRow, error) {
+func (q *Queries) GetTakeByMsgId(ctx context.Context, arg GetTakeByMsgIdParams) (Take, error) {
 	row := q.db.QueryRow(ctx, getTakeByMsgId, arg.UserMessageID, arg.ChannelID)
-	var i GetTakeByMsgIdRow
+	var i Take
 	err := row.Scan(
 		&i.ID,
 		&i.Status,
@@ -114,4 +96,21 @@ func (q *Queries) GetTakeByMsgId(ctx context.Context, arg GetTakeByMsgIdParams) 
 		&i.ChannelID,
 	)
 	return i, err
+}
+
+const updateTakeStatus = `-- name: UpdateTakeStatus :exec
+UPDATE takes
+SET status = $1
+WHERE id = $2 AND channel_id = $3
+`
+
+type UpdateTakeStatusParams struct {
+	Status    string
+	ID        int32
+	ChannelID int32
+}
+
+func (q *Queries) UpdateTakeStatus(ctx context.Context, arg UpdateTakeStatusParams) error {
+	_, err := q.db.Exec(ctx, updateTakeStatus, arg.Status, arg.ID, arg.ChannelID)
+	return err
 }
