@@ -1,10 +1,21 @@
-package repositories
+package domain
 
 import (
 	"context"
-
-	"github.com/confteam/confbots-api/internal/domain/entities"
 )
+
+type User struct {
+	ID   int
+	TgId int64
+}
+
+type UserChannel struct {
+	ID        int
+	UserID    int
+	ChannelID int
+	Role      string
+	Anonimity bool
+}
 
 type UserRepository interface {
 	Upsert(ctx context.Context, tgid int64, channelID int, role string) (int, error)
@@ -15,5 +26,5 @@ type UserRepository interface {
 	GetAnonimity(ctx context.Context, userID int, channelID int) (bool, error)
 	ToggleAnonimity(ctx context.Context, userID int, channelID int) (bool, error)
 	GetUserChannelID(ctx context.Context, userID int, channelID int) (int, error)
-	GetUserChannelByID(ctx context.Context, id int) (*entities.UserChannel, error)
+	GetUserChannelByID(ctx context.Context, id int) (*UserChannel, error)
 }

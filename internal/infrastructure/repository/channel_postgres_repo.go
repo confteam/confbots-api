@@ -2,18 +2,19 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/confteam/confbots-api/db"
-	"github.com/confteam/confbots-api/internal/domain/entities"
-	"github.com/confteam/confbots-api/internal/domain/repositories"
+	"github.com/confteam/confbots-api/internal/domain"
+	"github.com/jackc/pgx/v5"
 )
 
 type ChannelPostgresRepository struct {
 	q *db.Queries
 }
 
-func NewChannelPostgresRepository(q *db.Queries) repositories.ChannelRepository {
+func NewChannelPostgresRepository(q *db.Queries) domain.ChannelRepository {
 	return &ChannelPostgresRepository{
 		q: q,
 	}
@@ -23,8 +24,8 @@ const channelPkg = "infrastructure.repository.ChannelPostgresRepository"
 
 func (r *ChannelPostgresRepository) Create(
 	ctx context.Context,
-	channel entities.ChannelWithBotTgidAndType,
-) (*entities.Channel, error) {
+	channel domain.ChannelWithBotTgidAndType,
+) (*domain.Channel, error) {
 	const op = channelPkg + ".Create"
 
 	newChannel, err := r.q.CreateChannel(ctx, db.CreateChannelParams{
@@ -39,7 +40,7 @@ func (r *ChannelPostgresRepository) Create(
 		return nil, fmt.Errorf("%s:%v", op, err)
 	}
 
-	return &entities.Channel{
+	return &domain.Channel{
 		ID:                int(newChannel.ID),
 		Code:              newChannel.Code,
 		ChannelChatID:     &newChannel.ChannelChatID.Int64,
@@ -51,8 +52,8 @@ func (r *ChannelPostgresRepository) Create(
 
 func (r *ChannelPostgresRepository) Update(
 	ctx context.Context,
-	channel entities.ChannelWithoutCode,
-) (*entities.Channel, error) {
+	channel domain.ChannelWithoutCode,
+) (*domain.Channel, error) {
 	const op = channelPkg + ".Update"
 
 	updatedChannel, err := r.q.UpdateChannel(ctx, db.UpdateChannelParams{
@@ -63,10 +64,13 @@ func (r *ChannelPostgresRepository) Update(
 		Decorations:       ptrPgText(channel.Decorations),
 	})
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, domain.ErrChannelNotFound
+		}
 		return nil, fmt.Errorf("%s:%v", op, err)
 	}
 
-	return &entities.Channel{
+	return &domain.Channel{
 		ID:                channel.ID,
 		Code:              updatedChannel.Code,
 		ChannelChatID:     &updatedChannel.ChannelChatID.Int64,

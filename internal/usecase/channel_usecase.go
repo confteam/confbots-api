@@ -2,17 +2,17 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
-	"github.com/confteam/confbots-api/internal/domain/entities"
-	"github.com/confteam/confbots-api/internal/domain/repositories"
+	"github.com/confteam/confbots-api/internal/domain"
 )
 
 type ChannelUseCase struct {
-	r repositories.ChannelRepository
+	r domain.ChannelRepository
 }
 
-func NewChannelUseCase(r repositories.ChannelRepository) *ChannelUseCase {
+func NewChannelUseCase(r domain.ChannelRepository) *ChannelUseCase {
 	return &ChannelUseCase{
 		r: r,
 	}
@@ -22,8 +22,8 @@ const channelPkg = "usecase.ChannelUseCase"
 
 func (uc *ChannelUseCase) Create(
 	ctx context.Context,
-	channel entities.ChannelWithBotTgidAndType,
-) (*entities.Channel, error) {
+	channel domain.ChannelWithBotTgidAndType,
+) (*domain.Channel, error) {
 	const op = channelPkg + ".Create"
 
 	newChannel, err := uc.r.Create(ctx, channel)
@@ -36,12 +36,15 @@ func (uc *ChannelUseCase) Create(
 
 func (uc *ChannelUseCase) Update(
 	ctx context.Context,
-	channel entities.ChannelWithoutCode,
-) (*entities.Channel, error) {
+	channel domain.ChannelWithoutCode,
+) (*domain.Channel, error) {
 	const op = channelPkg + ".Update"
 
 	updatedChannel, err := uc.r.Update(ctx, channel)
 	if err != nil {
+		if errors.Is(err, domain.ErrChannelNotFound) {
+			return nil, err
+		}
 		return nil, fmt.Errorf("%s:%v", op, err)
 	}
 

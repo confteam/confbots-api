@@ -4,15 +4,14 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/confteam/confbots-api/internal/domain/entities"
-	"github.com/confteam/confbots-api/internal/domain/repositories"
+	"github.com/confteam/confbots-api/internal/domain"
 )
 
 type BotUseCase struct {
-	r repositories.BotRepository
+	r domain.BotRepository
 }
 
-func NewBotUseCase(repo repositories.BotRepository) *BotUseCase {
+func NewBotUseCase(repo domain.BotRepository) *BotUseCase {
 	return &BotUseCase{
 		r: repo,
 	}
@@ -24,7 +23,7 @@ func (uc *BotUseCase) Auth(
 	ctx context.Context,
 	tgid int64,
 	botType string,
-) (*entities.BotWithChannel, error) {
+) (*domain.BotWithChannel, error) {
 	const op = botPkg + ".Auth"
 	bot, err := uc.r.FindBotByTgIdAndType(ctx, tgid, botType)
 	if err != nil {

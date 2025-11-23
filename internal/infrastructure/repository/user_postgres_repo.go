@@ -2,18 +2,19 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/confteam/confbots-api/db"
-	"github.com/confteam/confbots-api/internal/domain/entities"
-	"github.com/confteam/confbots-api/internal/domain/repositories"
+	"github.com/confteam/confbots-api/internal/domain"
+	"github.com/jackc/pgx/v5"
 )
 
 type UserPostgresRepository struct {
 	q *db.Queries
 }
 
-func NewUserPostgresRepository(q *db.Queries) repositories.UserRepository {
+func NewUserPostgresRepository(q *db.Queries) domain.UserRepository {
 	return &UserPostgresRepository{
 		q: q,
 	}
@@ -21,7 +22,12 @@ func NewUserPostgresRepository(q *db.Queries) repositories.UserRepository {
 
 const userPkg = "infrasctructure.repository.UserPostgresRepository"
 
-func (r *UserPostgresRepository) Upsert(ctx context.Context, tgid int64, channelID int, role string) (int, error) {
+func (r *UserPostgresRepository) Upsert(
+	ctx context.Context,
+	tgid int64,
+	channelID int,
+	role string,
+) (int, error) {
 	const op = userPkg + ".Upsert"
 
 	id, err := r.q.UpsertUser(ctx, db.UpsertUserParams{
@@ -36,7 +42,12 @@ func (r *UserPostgresRepository) Upsert(ctx context.Context, tgid int64, channel
 	return int(id), nil
 }
 
-func (r *UserPostgresRepository) UpdateRole(ctx context.Context, role string, userID int, channelID int) error {
+func (r *UserPostgresRepository) UpdateRole(
+	ctx context.Context,
+	role string,
+	userID int,
+	channelID int,
+) error {
 	const op = userPkg + ".UpdateRole"
 
 	if err := r.q.UpdateUserRole(ctx, db.UpdateUserRoleParams{
@@ -44,6 +55,9 @@ func (r *UserPostgresRepository) UpdateRole(ctx context.Context, role string, us
 		ChannelID: int32(channelID),
 		Role:      string(role),
 	}); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return domain.ErrUserNotFound
+		}
 		return fmt.Errorf("%s:%v", op, err)
 	}
 
@@ -58,6 +72,9 @@ func (r *UserPostgresRepository) GetRole(ctx context.Context, userID int, channe
 		ChannelID: int32(channelID),
 	})
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return "", domain.ErrUserNotFound
+		}
 		return "", fmt.Errorf("%s:%v", op, err)
 	}
 
@@ -69,6 +86,9 @@ func (r *UserPostgresRepository) GetIdByTgId(ctx context.Context, tgid int64) (i
 
 	id, err := r.q.GetUserIdByTgId(ctx, tgid)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, domain.ErrUserNotFound
+		}
 		return 0, fmt.Errorf("%s:%v", op, err)
 	}
 
@@ -80,6 +100,9 @@ func (r *UserPostgresRepository) GetTgIdById(ctx context.Context, id int) (int64
 
 	tgid, err := r.q.GetUserTgIdById(ctx, int32(id))
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, domain.ErrUserNotFound
+		}
 		return 0, fmt.Errorf("%s:%v", op, err)
 	}
 
@@ -94,6 +117,9 @@ func (r *UserPostgresRepository) GetAnonimity(ctx context.Context, userID int, c
 		ChannelID: int32(channelID),
 	})
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return false, domain.ErrUserNotFound
+		}
 		return false, fmt.Errorf("%s:%v", op, err)
 	}
 
@@ -108,6 +134,9 @@ func (r *UserPostgresRepository) ToggleAnonimity(ctx context.Context, userID int
 		ChannelID: int32(channelID),
 	})
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return false, domain.ErrUserNotFound
+		}
 		return false, fmt.Errorf("%s:%v", op, err)
 	}
 
@@ -122,21 +151,27 @@ func (r *UserPostgresRepository) GetUserChannelID(ctx context.Context, userID in
 		ChannelID: int32(channelID),
 	})
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, domain.ErrUserChannelNotFound
+		}
 		return 0, fmt.Errorf("%s:%v", op, err)
 	}
 
 	return int(id), nil
 }
 
-func (r *UserPostgresRepository) GetUserChannelByID(ctx context.Context, id int) (*entities.UserChannel, error) {
+func (r *UserPostgresRepository) GetUserChannelByID(ctx context.Context, id int) (*domain.UserChannel, error) {
 	const op = userPkg + ".GetUserChannel"
 
 	uc, err := r.q.GetUserChannelById(ctx, int32(id))
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, domain.ErrUserChannelNotFound
+		}
 		return nil, fmt.Errorf("%s:%v", op, err)
 	}
 
-	return &entities.UserChannel{
+	return &domain.UserChannel{
 		ID:        int(uc.ID),
 		UserID:    int(uc.UserID),
 		ChannelID: int(uc.ChannelID),

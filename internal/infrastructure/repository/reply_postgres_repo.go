@@ -2,18 +2,19 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/confteam/confbots-api/db"
-	"github.com/confteam/confbots-api/internal/domain/entities"
-	"github.com/confteam/confbots-api/internal/domain/repositories"
+	"github.com/confteam/confbots-api/internal/domain"
+	"github.com/jackc/pgx/v5"
 )
 
 type ReplyPostgresRepository struct {
 	q *db.Queries
 }
 
-func NewReplyPostgresRepository(q *db.Queries) repositories.ReplyRepository {
+func NewReplyPostgresRepository(q *db.Queries) domain.ReplyRepository {
 	return &ReplyPostgresRepository{
 		q: q,
 	}
@@ -21,7 +22,13 @@ func NewReplyPostgresRepository(q *db.Queries) repositories.ReplyRepository {
 
 const replyPkg = "infrastructure.repository.ReplyPostgresRepository"
 
-func (r *ReplyPostgresRepository) Create(ctx context.Context, userMessageID int64, adminMessageID int64, takeID int, channelID int) (int, error) {
+func (r *ReplyPostgresRepository) Create(
+	ctx context.Context,
+	userMessageID int64,
+	adminMessageID int64,
+	takeID int,
+	channelID int,
+) (int, error) {
 	const op = replyPkg + ".Create"
 
 	id, err := r.q.CreateReply(ctx, db.CreateReplyParams{
@@ -37,7 +44,11 @@ func (r *ReplyPostgresRepository) Create(ctx context.Context, userMessageID int6
 	return int(id), nil
 }
 
-func (r *ReplyPostgresRepository) GetByMsgId(ctx context.Context, messageID int64, channelID int) (*entities.Reply, error) {
+func (r *ReplyPostgresRepository) GetByMsgId(
+	ctx context.Context,
+	messageID int64,
+	channelID int,
+) (*domain.Reply, error) {
 	const op = replyPkg + ".GetByMsgId"
 
 	reply, err := r.q.GetReplyByMsgId(ctx, db.GetReplyByMsgIdParams{
@@ -45,10 +56,13 @@ func (r *ReplyPostgresRepository) GetByMsgId(ctx context.Context, messageID int6
 		ChannelID:     int32(channelID),
 	})
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, domain.ErrReplyNotFound
+		}
 		return nil, fmt.Errorf("%s:%v", op, err)
 	}
 
-	return &entities.Reply{
+	return &domain.Reply{
 		ID:             int(reply.ID),
 		UserMessageID:  reply.UserMessageID,
 		AdminMessageID: reply.AdminMessageID,

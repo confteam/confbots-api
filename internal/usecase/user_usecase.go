@@ -2,16 +2,17 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
-	"github.com/confteam/confbots-api/internal/domain/repositories"
+	"github.com/confteam/confbots-api/internal/domain"
 )
 
 type UserUseCase struct {
-	r repositories.UserRepository
+	r domain.UserRepository
 }
 
-func NewUserUseCase(r repositories.UserRepository) *UserUseCase {
+func NewUserUseCase(r domain.UserRepository) *UserUseCase {
 	return &UserUseCase{
 		r: r,
 	}
@@ -19,7 +20,12 @@ func NewUserUseCase(r repositories.UserRepository) *UserUseCase {
 
 const userPkg = "usecase.UserUseCase"
 
-func (uc *UserUseCase) Upsert(ctx context.Context, tgid int64, channelID int, role string) (int, error) {
+func (uc *UserUseCase) Upsert(
+	ctx context.Context,
+	tgid int64,
+	channelID int,
+	role string,
+) (int, error) {
 	const op = userPkg + ".Upsert"
 
 	id, err := uc.r.Upsert(ctx, tgid, channelID, role)
@@ -30,63 +36,104 @@ func (uc *UserUseCase) Upsert(ctx context.Context, tgid int64, channelID int, ro
 	return id, nil
 }
 
-func (uc *UserUseCase) UpdateRole(ctx context.Context, role string, tgid int64, channelID int) error {
+func (uc *UserUseCase) UpdateRole(
+	ctx context.Context,
+	role string,
+	tgid int64,
+	channelID int,
+) error {
 	const op = userPkg + ".UpdateRole"
 
 	userID, err := uc.r.GetIdByTgId(ctx, tgid)
 	if err != nil {
+		if errors.Is(err, domain.ErrUserNotFound) {
+			return err
+		}
 		return fmt.Errorf("%s:%v", op, err)
 	}
 
 	if err := uc.r.UpdateRole(ctx, role, userID, channelID); err != nil {
+		if errors.Is(err, domain.ErrUserChannelNotFound) {
+			return err
+		}
 		return fmt.Errorf("%s:%v", op, err)
 	}
 
 	return nil
 }
 
-func (uc *UserUseCase) GetRole(ctx context.Context, tgid int64, channelID int) (string, error) {
+func (uc *UserUseCase) GetRole(
+	ctx context.Context,
+	tgid int64,
+	channelID int,
+) (string, error) {
 	const op = userPkg + ".GetRole"
 
 	userID, err := uc.r.GetIdByTgId(ctx, tgid)
 	if err != nil {
+		if errors.Is(err, domain.ErrUserNotFound) {
+			return "", err
+		}
 		return "", fmt.Errorf("%s:%v", op, err)
 	}
 
 	role, err := uc.r.GetRole(ctx, userID, channelID)
 	if err != nil {
+		if errors.Is(err, domain.ErrUserChannelNotFound) {
+			return "", err
+		}
 		return "", fmt.Errorf("%s:%v", op, err)
 	}
 
 	return role, nil
 }
 
-func (uc *UserUseCase) GetAnonimity(ctx context.Context, tgid int64, channelID int) (bool, error) {
+func (uc *UserUseCase) GetAnonimity(
+	ctx context.Context,
+	tgid int64,
+	channelID int,
+) (bool, error) {
 	const op = userPkg + ".GetAnonimity"
 
 	userID, err := uc.r.GetIdByTgId(ctx, tgid)
 	if err != nil {
+		if errors.Is(err, domain.ErrUserNotFound) {
+			return false, err
+		}
 		return false, fmt.Errorf("%s:%v", op, err)
 	}
 
 	anonimity, err := uc.r.GetAnonimity(ctx, userID, channelID)
 	if err != nil {
+		if errors.Is(err, domain.ErrUserChannelNotFound) {
+			return false, err
+		}
 		return false, fmt.Errorf("%s:%v", op, err)
 	}
 
 	return anonimity, nil
 }
 
-func (uc *UserUseCase) ToggleAnonimity(ctx context.Context, tgid int64, channelID int) (bool, error) {
+func (uc *UserUseCase) ToggleAnonimity(
+	ctx context.Context,
+	tgid int64,
+	channelID int,
+) (bool, error) {
 	const op = userPkg + ".GetAnonimity"
 
 	userID, err := uc.r.GetIdByTgId(ctx, tgid)
 	if err != nil {
+		if errors.Is(err, domain.ErrUserNotFound) {
+			return false, err
+		}
 		return false, fmt.Errorf("%s:%v", op, err)
 	}
 
 	anonimity, err := uc.r.ToggleAnonimity(ctx, userID, channelID)
 	if err != nil {
+		if errors.Is(err, domain.ErrUserChannelNotFound) {
+			return false, err
+		}
 		return false, fmt.Errorf("%s:%v", op, err)
 	}
 

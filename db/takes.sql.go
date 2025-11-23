@@ -51,16 +51,11 @@ func (q *Queries) CreateTake(ctx context.Context, arg CreateTakeParams) (CreateT
 const getTakeById = `-- name: GetTakeById :one
 SELECT id, status, user_message_id, admin_message_id, user_channel_id, channel_id
 FROM takes
-WHERE id = $1 AND channel_id = $2
+WHERE id = $1
 `
 
-type GetTakeByIdParams struct {
-	ID        int32
-	ChannelID int32
-}
-
-func (q *Queries) GetTakeById(ctx context.Context, arg GetTakeByIdParams) (Take, error) {
-	row := q.db.QueryRow(ctx, getTakeById, arg.ID, arg.ChannelID)
+func (q *Queries) GetTakeById(ctx context.Context, id int32) (Take, error) {
+	row := q.db.QueryRow(ctx, getTakeById, id)
 	var i Take
 	err := row.Scan(
 		&i.ID,
@@ -101,16 +96,15 @@ func (q *Queries) GetTakeByMsgId(ctx context.Context, arg GetTakeByMsgIdParams) 
 const updateTakeStatus = `-- name: UpdateTakeStatus :exec
 UPDATE takes
 SET status = $1
-WHERE id = $2 AND channel_id = $3
+WHERE id = $2
 `
 
 type UpdateTakeStatusParams struct {
-	Status    string
-	ID        int32
-	ChannelID int32
+	Status string
+	ID     int32
 }
 
 func (q *Queries) UpdateTakeStatus(ctx context.Context, arg UpdateTakeStatusParams) error {
-	_, err := q.db.Exec(ctx, updateTakeStatus, arg.Status, arg.ID, arg.ChannelID)
+	_, err := q.db.Exec(ctx, updateTakeStatus, arg.Status, arg.ID)
 	return err
 }

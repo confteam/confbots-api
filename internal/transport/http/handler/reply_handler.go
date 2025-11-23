@@ -3,10 +3,10 @@ package handler
 import (
 	"log/slog"
 	"net/http"
-	"strconv"
 
 	"github.com/confteam/confbots-api/internal/transport/http/handler/dto"
 	resp "github.com/confteam/confbots-api/internal/transport/http/handler/response"
+	"github.com/confteam/confbots-api/internal/transport/http/helpers"
 	"github.com/confteam/confbots-api/internal/usecase"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
@@ -36,10 +36,10 @@ const replyPkg = "transport.http.handler.ReplyHandler"
 func (h *ReplyHandler) Create(w http.ResponseWriter, r *http.Request) {
 	const op = replyPkg + ".Create"
 
-	log := reqLogger(h.log, r, op)
+	log := helpers.ReqLogger(h.log, r, op)
 
 	var req dto.CreateReplyRequest
-	if !decodeJson(w, r, log, &req) {
+	if !helpers.DecodeJSON(w, r, log, &req) {
 		return
 	}
 
@@ -50,13 +50,13 @@ func (h *ReplyHandler) Create(w http.ResponseWriter, r *http.Request) {
 		slog.Int("channel_id", req.ChannelID),
 	)
 
-	if !validate(w, r, log, h.val, req) {
+	if !helpers.Validate(w, r, log, h.val, req) {
 		return
 	}
 
 	id, err := h.uc.Create(r.Context(), req.UserMessageID, req.AdminMessageID, req.TakeID, req.ChannelID)
 	if err != nil {
-		returnError(w, r, log, http.StatusInternalServerError, "failed to create reply", nil)
+		helpers.HandleError(w, r, log, err)
 		return
 	}
 
@@ -73,37 +73,29 @@ func (h *ReplyHandler) Create(w http.ResponseWriter, r *http.Request) {
 		Response: resp.OK(),
 	}
 
-	json(w, r, http.StatusOK, response)
+	helpers.EncodeJSON(w, r, http.StatusOK, response)
 }
 
 func (h *ReplyHandler) GetByMsgID(w http.ResponseWriter, r *http.Request) {
 	const op = replyPkg + ".GetByMsgID"
 
-	log := reqLogger(h.log, r, op)
+	log := helpers.ReqLogger(h.log, r, op)
 
-	tgIDStr := chi.URLParam(r, "tgid")
-	tgID, err := strconv.Atoi(tgIDStr)
-	if err != nil {
-		returnError(w, r, log, http.StatusUnprocessableEntity, "failed to convert tgid", nil)
+	tgID, ok := helpers.ParseURLParam(w, r, log, "tgid")
+	if !ok {
 		return
 	}
 
-	channelIDStr := r.URL.Query().Get("channelId")
-	if channelIDStr == "" {
-		returnError(w, r, log, http.StatusBadRequest, "channelId is required", nil)
-		return
-	}
-	channelID, err := strconv.Atoi(channelIDStr)
-	if err != nil {
-		returnError(w, r, log, http.StatusUnprocessableEntity, "failed to convert channelId", nil)
+	channelID, ok := helpers.ParseQuery(w, r, log, "channelId", true)
+	if !ok {
 		return
 	}
 
-	log.Info("got url params", slog.String("tgid", tgIDStr), slog.String("channel_id", channelIDStr))
+	log.Info("got url params", slog.Int("tgid", tgID), slog.Int("channel_id", channelID))
 
 	reply, err := h.uc.GetByMsgID(r.Context(), int64(tgID), channelID)
 	if err != nil {
-		returnError(w, r, log, http.StatusNotFound, "reply not found", err)
+		helpers.HandleError(w, r, log, err)
 		return
 	}
 
@@ -116,9 +108,9 @@ func (h *ReplyHandler) GetByMsgID(w http.ResponseWriter, r *http.Request) {
 	)
 
 	response := dto.GetReplyByMsgIDResponse{
-		Reply:    mapReplyToReplyResponse(*reply),
+		Reply:    helpers.MapReplyToReplyResponse(*reply),
 		Response: resp.OK(),
 	}
 
-	json(w, r, http.StatusOK, response)
+	helpers.EncodeJSON(w, r, http.StatusOK, response)
 }

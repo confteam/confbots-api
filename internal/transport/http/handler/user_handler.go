@@ -3,10 +3,10 @@ package handler
 import (
 	"log/slog"
 	"net/http"
-	"strconv"
 
 	"github.com/confteam/confbots-api/internal/transport/http/handler/dto"
 	resp "github.com/confteam/confbots-api/internal/transport/http/handler/response"
+	"github.com/confteam/confbots-api/internal/transport/http/helpers"
 	"github.com/confteam/confbots-api/internal/usecase"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
@@ -27,7 +27,7 @@ func NewUserHandler(uc *usecase.UserUseCase, log *slog.Logger) *UserHandler {
 }
 
 func (h *UserHandler) RegisterRoutes(r chi.Router) {
-	r.Post("/users/{id}", h.Upsert)
+	r.Post("/users/{tgid}", h.Upsert)
 	r.Patch("/users/role", h.UpdateRole)
 	r.Get("/users/role", h.GetRole)
 	r.Patch("/users/anonimity", h.ToggleAnonimity)
@@ -36,48 +36,30 @@ func (h *UserHandler) RegisterRoutes(r chi.Router) {
 
 const userPkg = "transport.http.handler.UserHandler"
 
-func (h *UserHandler) GetQueries(w http.ResponseWriter, r *http.Request, log *slog.Logger) (int64, int) {
-	tgIDStr := r.URL.Query().Get("tgId")
-	channelIDStr := r.URL.Query().Get("channelId")
-	if tgIDStr == "" || channelIDStr == "" {
-		returnError(w, r, log, http.StatusBadRequest, "tgId and channelId are required", nil)
-		return 0, 0
-	}
-
-	tgID, err := strconv.Atoi(tgIDStr)
-	if err != nil {
-		returnError(w, r, log, http.StatusUnprocessableEntity, "failed to convert tgid", err)
-		return 0, 0
-	}
-
-	channelID, err := strconv.Atoi(channelIDStr)
-	if err != nil {
-		returnError(w, r, log, http.StatusUnprocessableEntity, "failed to convert channelId", err)
-		return 0, 0
-	}
+func (h *UserHandler) GetQueries(w http.ResponseWriter, r *http.Request, log *slog.Logger) (int64, int, bool) {
+	tgID, ok := helpers.ParseQuery(w, r, log, "tgid", true)
+	channelID, ok := helpers.ParseQuery(w, r, log, "channelId", true)
 
 	log.Info("query parameteres decoded",
 		slog.Int("tgid", tgID),
 		slog.Int("channel_id", channelID),
 	)
 
-	return int64(tgID), channelID
+	return int64(tgID), channelID, ok
 }
 
 func (h *UserHandler) Upsert(w http.ResponseWriter, r *http.Request) {
 	const op = userPkg + ".Upsert"
 
-	log := reqLogger(h.log, r, op)
+	log := helpers.ReqLogger(h.log, r, op)
 
 	var req dto.UpsertUserRequest
-	if !decodeJson(w, r, log, &req) {
+	if !helpers.DecodeJSON(w, r, log, &req) {
 		return
 	}
 
-	tgIDStr := chi.URLParam(r, "id")
-	tgID, err := strconv.Atoi(tgIDStr)
-	if err != nil {
-		returnError(w, r, log, http.StatusUnprocessableEntity, "failed to convert tgID", nil)
+	tgID, ok := helpers.ParseURLParam(w, r, log, "tgid")
+	if !ok {
 		return
 	}
 
@@ -87,13 +69,13 @@ func (h *UserHandler) Upsert(w http.ResponseWriter, r *http.Request) {
 		slog.Int("channel_id", req.ChannelID),
 	)
 
-	if !validate(w, r, log, h.val, req) {
+	if !helpers.Validate(w, r, log, h.val, req) {
 		return
 	}
 
 	userID, err := h.uc.Upsert(r.Context(), int64(tgID), req.ChannelID, req.Role)
 	if err != nil {
-		returnError(w, r, log, http.StatusInternalServerError, "failed to upsert user", err)
+		helpers.HandleError(w, r, log, err)
 		return
 	}
 
@@ -108,21 +90,21 @@ func (h *UserHandler) Upsert(w http.ResponseWriter, r *http.Request) {
 		Response: resp.OK(),
 	}
 
-	json(w, r, http.StatusOK, response)
+	helpers.EncodeJSON(w, r, http.StatusOK, response)
 }
 
 func (h *UserHandler) UpdateRole(w http.ResponseWriter, r *http.Request) {
 	const op = userPkg + ".UpdateRole"
 
-	log := reqLogger(h.log, r, op)
+	log := helpers.ReqLogger(h.log, r, op)
 
-	tgID, channelID := h.GetQueries(w, r, log)
-	if tgID == 0 || channelID == 0 {
+	tgID, channelID, ok := h.GetQueries(w, r, log)
+	if !ok {
 		return
 	}
 
 	var req dto.UpdateUserRoleRequest
-	if !decodeJson(w, r, log, &req) {
+	if !helpers.DecodeJSON(w, r, log, &req) {
 		return
 	}
 
@@ -130,12 +112,12 @@ func (h *UserHandler) UpdateRole(w http.ResponseWriter, r *http.Request) {
 		slog.String("role", string(req.Role)),
 	)
 
-	if !validate(w, r, log, h.val, req) {
+	if !helpers.Validate(w, r, log, h.val, req) {
 		return
 	}
 
 	if err := h.uc.UpdateRole(r.Context(), req.Role, tgID, channelID); err != nil {
-		returnError(w, r, log, http.StatusInternalServerError, "failed to update user's role", err)
+		helpers.HandleError(w, r, log, err)
 		return
 	}
 
@@ -149,22 +131,22 @@ func (h *UserHandler) UpdateRole(w http.ResponseWriter, r *http.Request) {
 		Response: resp.OK(),
 	}
 
-	json(w, r, http.StatusOK, response)
+	helpers.EncodeJSON(w, r, http.StatusOK, response)
 }
 
 func (h *UserHandler) GetRole(w http.ResponseWriter, r *http.Request) {
 	const op = userPkg + ".GetRole"
 
-	log := reqLogger(h.log, r, op)
+	log := helpers.ReqLogger(h.log, r, op)
 
-	tgID, channelID := h.GetQueries(w, r, log)
-	if tgID == 0 || channelID == 0 {
+	tgID, channelID, ok := h.GetQueries(w, r, log)
+	if !ok {
 		return
 	}
 
 	role, err := h.uc.GetRole(r.Context(), tgID, channelID)
 	if err != nil {
-		returnError(w, r, log, http.StatusInternalServerError, "failed to get user's role", err)
+		helpers.HandleError(w, r, log, err)
 		return
 	}
 
@@ -179,22 +161,22 @@ func (h *UserHandler) GetRole(w http.ResponseWriter, r *http.Request) {
 		Response: resp.OK(),
 	}
 
-	json(w, r, http.StatusOK, response)
+	helpers.EncodeJSON(w, r, http.StatusOK, response)
 }
 
 func (h *UserHandler) GetAnonimity(w http.ResponseWriter, r *http.Request) {
 	const op = userPkg + ".GetAnonimity"
 
-	log := reqLogger(h.log, r, op)
+	log := helpers.ReqLogger(h.log, r, op)
 
-	tgID, channelID := h.GetQueries(w, r, log)
-	if tgID == 0 || channelID == 0 {
+	tgID, channelID, ok := h.GetQueries(w, r, log)
+	if !ok {
 		return
 	}
 
 	anonimity, err := h.uc.GetAnonimity(r.Context(), tgID, channelID)
 	if err != nil {
-		returnError(w, r, log, http.StatusInternalServerError, "failed to get user's anonimity", err)
+		helpers.HandleError(w, r, log, err)
 		return
 	}
 
@@ -209,22 +191,22 @@ func (h *UserHandler) GetAnonimity(w http.ResponseWriter, r *http.Request) {
 		Response:  resp.OK(),
 	}
 
-	json(w, r, http.StatusOK, response)
+	helpers.EncodeJSON(w, r, http.StatusOK, response)
 }
 
 func (h *UserHandler) ToggleAnonimity(w http.ResponseWriter, r *http.Request) {
 	const op = userPkg + ".ToggleAnonimity"
 
-	log := reqLogger(h.log, r, op)
+	log := helpers.ReqLogger(h.log, r, op)
 
-	tgID, channelID := h.GetQueries(w, r, log)
-	if tgID == 0 || channelID == 0 {
+	tgID, channelID, ok := h.GetQueries(w, r, log)
+	if !ok {
 		return
 	}
 
 	anonimity, err := h.uc.ToggleAnonimity(r.Context(), tgID, channelID)
 	if err != nil {
-		returnError(w, r, log, http.StatusInternalServerError, "failed to toggle user's anonimity", err)
+		helpers.HandleError(w, r, log, err)
 		return
 	}
 
@@ -239,5 +221,5 @@ func (h *UserHandler) ToggleAnonimity(w http.ResponseWriter, r *http.Request) {
 		Response:  resp.OK(),
 	}
 
-	json(w, r, http.StatusOK, response)
+	helpers.EncodeJSON(w, r, http.StatusOK, response)
 }

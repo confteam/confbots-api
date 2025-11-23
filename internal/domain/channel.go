@@ -1,4 +1,6 @@
-package entities
+package domain
+
+import "context"
 
 type Channel struct {
 	ID                int
@@ -25,4 +27,9 @@ type ChannelWithBotTgidAndType struct {
 	AdminChatID       *int64
 	DiscussionsChatID *int64
 	Decorations       *string
+}
+
+type ChannelRepository interface {
+	Create(ctx context.Context, channel ChannelWithBotTgidAndType) (*Channel, error)
+	Update(ctx context.Context, channel ChannelWithoutCode) (*Channel, error)
 }

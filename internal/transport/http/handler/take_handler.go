@@ -3,14 +3,13 @@ package handler
 import (
 	"log/slog"
 	"net/http"
-	"strconv"
 
 	"github.com/confteam/confbots-api/internal/transport/http/handler/dto"
 	resp "github.com/confteam/confbots-api/internal/transport/http/handler/response"
+	"github.com/confteam/confbots-api/internal/transport/http/helpers"
 	"github.com/confteam/confbots-api/internal/usecase"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
-	"github.com/jackc/pgx/v5"
 )
 
 type TakeHandler struct {
@@ -37,41 +36,13 @@ func (h *TakeHandler) RegisterRoutes(r chi.Router) {
 
 const takePkg = "transport.http.handler.TakeHandler"
 
-func (h *TakeHandler) GetIDAndChannelID(w http.ResponseWriter, r *http.Request, log *slog.Logger) (int, int) {
-	idStr := chi.URLParam(r, "id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		returnError(w, r, log, http.StatusUnprocessableEntity, "failed to convert id", nil)
-		return 0, 0
-	}
-
-	channelIDStr := r.URL.Query().Get("channelId")
-	if channelIDStr == "" {
-		returnError(w, r, log, http.StatusBadRequest, "channelId is required", nil)
-		return 0, 0
-	}
-
-	channelID, err := strconv.Atoi(channelIDStr)
-	if err != nil {
-		returnError(w, r, log, http.StatusUnprocessableEntity, "failed to convert channelID", nil)
-		return 0, 0
-	}
-
-	log.Info("got url params",
-		slog.Int("id", id),
-		slog.Int("channel_id", channelID),
-	)
-
-	return id, channelID
-}
-
 func (h *TakeHandler) Create(w http.ResponseWriter, r *http.Request) {
 	const op = takePkg + ".Create"
 
-	log := reqLogger(h.log, r, op)
+	log := helpers.ReqLogger(h.log, r, op)
 
 	var req dto.CreateTakeRequest
-	if !decodeJson(w, r, log, &req) {
+	if !helpers.DecodeJSON(w, r, log, &req) {
 		return
 	}
 
@@ -82,13 +53,13 @@ func (h *TakeHandler) Create(w http.ResponseWriter, r *http.Request) {
 		slog.Int("channel_id", req.ChannelID),
 	)
 
-	if !validate(w, r, log, h.val, req) {
+	if !helpers.Validate(w, r, log, h.val, req) {
 		return
 	}
 
 	take, err := h.uc.Create(r.Context(), req.UserTgID, req.UserMessageID, req.AdminMessageID, req.ChannelID)
 	if err != nil {
-		returnError(w, r, log, http.StatusInternalServerError, "failed to create take", err)
+		helpers.HandleError(w, r, log, err)
 		return
 	}
 
@@ -105,22 +76,22 @@ func (h *TakeHandler) Create(w http.ResponseWriter, r *http.Request) {
 		Response: resp.OK(),
 	}
 
-	json(w, r, http.StatusOK, response)
+	helpers.EncodeJSON(w, r, http.StatusOK, response)
 }
 
 func (h *TakeHandler) GetById(w http.ResponseWriter, r *http.Request) {
 	const op = takePkg + ".GetById"
 
-	log := reqLogger(h.log, r, op)
+	log := helpers.ReqLogger(h.log, r, op)
 
-	id, channelID := h.GetIDAndChannelID(w, r, log)
-	if id == 0 || channelID == 0 {
+	id, ok := helpers.ParseURLParam(w, r, log, "id")
+	if !ok {
 		return
 	}
 
-	take, err := h.uc.GetById(r.Context(), id, channelID)
+	take, err := h.uc.GetById(r.Context(), id)
 	if err != nil {
-		returnError(w, r, log, http.StatusNotFound, "take not found", err)
+		helpers.HandleError(w, r, log, err)
 		return
 	}
 
@@ -134,39 +105,22 @@ func (h *TakeHandler) GetById(w http.ResponseWriter, r *http.Request) {
 	)
 
 	response := dto.GetTakeResponse{
-		Take:     mapTakeToTakeResponse(*take),
+		Take:     helpers.MapTakeToTakeResponse(*take),
 		Response: resp.OK(),
 	}
 
-	json(w, r, http.StatusOK, response)
+	helpers.EncodeJSON(w, r, http.StatusOK, response)
 }
 
 func (h *TakeHandler) GetByMsgId(w http.ResponseWriter, r *http.Request) {
 	const op = takePkg + ".GetByMsgId"
 
-	log := reqLogger(h.log, r, op)
+	log := helpers.ReqLogger(h.log, r, op)
 
-	channelIDStr := r.URL.Query().Get("channelId")
-	if channelIDStr == "" {
-		returnError(w, r, log, http.StatusBadRequest, "channelId is required", nil)
-		return
-	}
+	channelID, ok := helpers.ParseQuery(w, r, log, "channelId", true)
+	messageID, ok := helpers.ParseQuery(w, r, log, "messageId", true)
 
-	messageIDStr := r.URL.Query().Get("messageId")
-	if messageIDStr == "" {
-		returnError(w, r, log, http.StatusBadRequest, "messageId is required", nil)
-		return
-	}
-
-	channelID, err := strconv.Atoi(channelIDStr)
-	if err != nil {
-		returnError(w, r, log, http.StatusUnprocessableEntity, "failed to convert channelID", nil)
-		return
-	}
-
-	messageID, err := strconv.Atoi(messageIDStr)
-	if err != nil {
-		returnError(w, r, log, http.StatusUnprocessableEntity, "failed to convert messageID", nil)
+	if !ok {
 		return
 	}
 
@@ -177,11 +131,7 @@ func (h *TakeHandler) GetByMsgId(w http.ResponseWriter, r *http.Request) {
 
 	take, err := h.uc.GetByMsgId(r.Context(), int64(messageID), channelID)
 	if err != nil {
-		if err == pgx.ErrNoRows {
-			returnError(w, r, log, http.StatusNotFound, "take not found", nil)
-			return
-		}
-		returnError(w, r, log, http.StatusInternalServerError, "failed to get take", err)
+		helpers.HandleError(w, r, log, err)
 		return
 	}
 
@@ -195,67 +145,65 @@ func (h *TakeHandler) GetByMsgId(w http.ResponseWriter, r *http.Request) {
 	)
 
 	response := dto.GetTakeResponse{
-		Take:     mapTakeToTakeResponse(*take),
+		Take:     helpers.MapTakeToTakeResponse(*take),
 		Response: resp.OK(),
 	}
 
-	json(w, r, http.StatusOK, response)
+	helpers.EncodeJSON(w, r, http.StatusOK, response)
 }
 
 func (h *TakeHandler) UpdateStatus(w http.ResponseWriter, r *http.Request) {
 	const op = takePkg + ".UpdateStatus"
 
-	log := reqLogger(h.log, r, op)
+	log := helpers.ReqLogger(h.log, r, op)
 
-	id, channelID := h.GetIDAndChannelID(w, r, log)
-	if id == 0 || channelID == 0 {
+	id, ok := helpers.ParseURLParam(w, r, log, "id")
+	if !ok {
 		return
 	}
 
 	var req dto.UpdateTakeStatusRequest
-	if !decodeJson(w, r, log, &req) {
+	if !helpers.DecodeJSON(w, r, log, &req) {
 		return
 	}
 
 	log.Info("request body decoded", slog.String("status", req.Status))
 
-	if !validate(w, r, log, h.val, req) {
+	if !helpers.Validate(w, r, log, h.val, req) {
 		return
 	}
 
-	if err := h.uc.UpdateStatus(r.Context(), id, channelID); err != nil {
-		returnError(w, r, log, http.StatusInternalServerError, "failed to update take's status", nil)
+	if err := h.uc.UpdateStatus(r.Context(), id, req.Status); err != nil {
+		helpers.HandleError(w, r, log, err)
 		return
 	}
 
 	log.Info("updated take's status",
 		slog.Int("id", id),
-		slog.Int("channel_id", channelID),
 		slog.String("status", req.Status),
 	)
 
-	json(w, r, http.StatusOK, resp.OK())
+	helpers.EncodeJSON(w, r, http.StatusOK, resp.OK())
 }
 
 func (h *TakeHandler) GetAuthor(w http.ResponseWriter, r *http.Request) {
 	const op = takePkg + ".GetAuthor"
 
-	log := reqLogger(h.log, r, op)
+	log := helpers.ReqLogger(h.log, r, op)
 
-	id, channelID := h.GetIDAndChannelID(w, r, log)
-	if id == 0 || channelID == 0 {
+	id, ok := helpers.ParseURLParam(w, r, log, "id")
+	if !ok {
 		return
 	}
 
-	tgid, err := h.uc.GetTakeAuthor(r.Context(), id, channelID)
+	tgid, err := h.uc.GetTakeAuthor(r.Context(), id)
 	if err != nil {
-		returnError(w, r, log, http.StatusInternalServerError, "failed to get take's author", nil)
+		helpers.HandleError(w, r, log, err)
 		return
 	}
 
-	log.Info("updated take's status",
+	log.Info("got take's authour",
 		slog.Int("id", id),
-		slog.Int("channel_id", channelID),
 		slog.Int64("tgid", tgid),
 	)
 
@@ -264,5 +212,5 @@ func (h *TakeHandler) GetAuthor(w http.ResponseWriter, r *http.Request) {
 		Response: resp.OK(),
 	}
 
-	json(w, r, http.StatusOK, response)
+	helpers.EncodeJSON(w, r, http.StatusOK, response)
 }

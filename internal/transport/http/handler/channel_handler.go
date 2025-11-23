@@ -3,11 +3,11 @@ package handler
 import (
 	"log/slog"
 	"net/http"
-	"strconv"
 
-	"github.com/confteam/confbots-api/internal/domain/entities"
+	"github.com/confteam/confbots-api/internal/domain"
 	"github.com/confteam/confbots-api/internal/transport/http/handler/dto"
 	resp "github.com/confteam/confbots-api/internal/transport/http/handler/response"
+	"github.com/confteam/confbots-api/internal/transport/http/helpers"
 	"github.com/confteam/confbots-api/internal/usecase"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
@@ -37,10 +37,10 @@ const channelPkg = "transport.http.handler.ChannelHandler"
 func (h *ChannelHandler) Create(w http.ResponseWriter, r *http.Request) {
 	const op = channelPkg + ".Create"
 
-	log := reqLogger(h.log, r, op)
+	log := helpers.ReqLogger(h.log, r, op)
 
 	var req dto.CreateChannelRequest
-	if !decodeJson(w, r, log, &req) {
+	if !helpers.DecodeJSON(w, r, log, &req) {
 		return
 	}
 
@@ -53,11 +53,11 @@ func (h *ChannelHandler) Create(w http.ResponseWriter, r *http.Request) {
 		slog.Int64("discussions_chat_id", *req.DiscussionsChatID),
 	)
 
-	if !validate(w, r, log, h.val, req) {
+	if !helpers.Validate(w, r, log, h.val, req) {
 		return
 	}
 
-	channel, err := h.uc.Create(r.Context(), entities.ChannelWithBotTgidAndType{
+	channel, err := h.uc.Create(r.Context(), domain.ChannelWithBotTgidAndType{
 		BotType:           string(req.BotType),
 		BotTgID:           int(req.BotTgId),
 		Code:              req.Code,
@@ -66,13 +66,13 @@ func (h *ChannelHandler) Create(w http.ResponseWriter, r *http.Request) {
 		DiscussionsChatID: req.DiscussionsChatID,
 	})
 	if err != nil {
-		returnError(w, r, log, http.StatusInternalServerError, "failed to create channel", err)
+		helpers.HandleError(w, r, log, err)
 		return
 	}
 
 	response := dto.CreateChannelResponse{
 		Response: resp.OK(),
-		Channel:  mapChannelToChannelResponse(*channel),
+		Channel:  helpers.MapChannelToChannelResponse(*channel),
 	}
 
 	log.Info("channel created",
@@ -84,23 +84,21 @@ func (h *ChannelHandler) Create(w http.ResponseWriter, r *http.Request) {
 		slog.String("decorations", *channel.Decorations),
 	)
 
-	json(w, r, http.StatusOK, response)
+	helpers.EncodeJSON(w, r, http.StatusOK, response)
 }
 
 func (h *ChannelHandler) Update(w http.ResponseWriter, r *http.Request) {
 	const op = channelPkg + ".Update"
 
-	log := reqLogger(h.log, r, op)
+	log := helpers.ReqLogger(h.log, r, op)
 
-	idStr := chi.URLParam(r, "id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		returnError(w, r, log, http.StatusUnprocessableEntity, "failed to convert id", nil)
+	id, ok := helpers.ParseURLParam(w, r, log, "id")
+	if !ok {
 		return
 	}
 
 	var req dto.UpdateChannelRequest
-	if !decodeJson(w, r, log, &req) {
+	if !helpers.DecodeJSON(w, r, log, &req) {
 		return
 	}
 
@@ -116,11 +114,11 @@ func (h *ChannelHandler) Update(w http.ResponseWriter, r *http.Request) {
 		slog.String("decorations", *req.Decorations),
 	)
 
-	if !validate(w, r, log, h.val, req) {
+	if !helpers.Validate(w, r, log, h.val, req) {
 		return
 	}
 
-	channel, err := h.uc.Update(r.Context(), entities.ChannelWithoutCode{
+	channel, err := h.uc.Update(r.Context(), domain.ChannelWithoutCode{
 		ID:                id,
 		ChannelChatID:     req.ChannelChatID,
 		AdminChatID:       req.AdminChatID,
@@ -128,7 +126,7 @@ func (h *ChannelHandler) Update(w http.ResponseWriter, r *http.Request) {
 		Decorations:       req.Decorations,
 	})
 	if err != nil {
-		returnError(w, r, log, http.StatusInternalServerError, "failed to update channel", err)
+		helpers.HandleError(w, r, log, err)
 		return
 	}
 
@@ -145,5 +143,5 @@ func (h *ChannelHandler) Update(w http.ResponseWriter, r *http.Request) {
 		Response: resp.OK(),
 	}
 
-	json(w, r, http.StatusOK, response)
+	helpers.EncodeJSON(w, r, http.StatusOK, response)
 }

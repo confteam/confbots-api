@@ -6,6 +6,7 @@ import (
 
 	"github.com/confteam/confbots-api/internal/transport/http/handler/dto"
 	resp "github.com/confteam/confbots-api/internal/transport/http/handler/response"
+	"github.com/confteam/confbots-api/internal/transport/http/helpers"
 	"github.com/confteam/confbots-api/internal/usecase"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
@@ -35,10 +36,10 @@ const botPkg = "transport.http.handler.BotHandler"
 func (h *BotHandler) Auth(w http.ResponseWriter, r *http.Request) {
 	const op = botPkg + ".Auth"
 
-	log := reqLogger(h.log, r, op)
+	log := helpers.ReqLogger(h.log, r, op)
 
 	var req dto.CreateBotRequest
-	if !decodeJson(w, r, log, &req) {
+	if !helpers.DecodeJSON(w, r, log, &req) {
 		return
 	}
 
@@ -47,13 +48,13 @@ func (h *BotHandler) Auth(w http.ResponseWriter, r *http.Request) {
 		slog.String("type", string(req.BotType)),
 	)
 
-	if !validate(w, r, log, h.val, req) {
+	if !helpers.Validate(w, r, log, h.val, req) {
 		return
 	}
 
 	bot, err := h.uc.Auth(r.Context(), req.TgId, req.BotType)
 	if err != nil {
-		returnError(w, r, log, http.StatusInternalServerError, "failed to create bot", err)
+		helpers.HandleError(w, r, log, err)
 		return
 	}
 
@@ -84,5 +85,5 @@ func (h *BotHandler) Auth(w http.ResponseWriter, r *http.Request) {
 		slog.Any("channel", channel),
 	)
 
-	json(w, r, http.StatusOK, response)
+	helpers.EncodeJSON(w, r, http.StatusOK, response)
 }

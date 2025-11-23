@@ -2,20 +2,19 @@ package repository
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 
 	"github.com/confteam/confbots-api/db"
-	"github.com/confteam/confbots-api/internal/domain/entities"
-	"github.com/confteam/confbots-api/internal/domain/repositories"
+	"github.com/confteam/confbots-api/internal/domain"
+	"github.com/jackc/pgx/v5"
 )
 
 type BotPostgresRepository struct {
 	q *db.Queries
 }
 
-func NewBotPostgresRepository(q *db.Queries) repositories.BotRepository {
+func NewBotPostgresRepository(q *db.Queries) domain.BotRepository {
 	return &BotPostgresRepository{
 		q: q,
 	}
@@ -27,7 +26,7 @@ func (r *BotPostgresRepository) FindBotByTgIdAndType(
 	ctx context.Context,
 	tgid int64,
 	botType string,
-) (*entities.BotWithChannel, error) {
+) (*domain.BotWithChannel, error) {
 	const op = botPkg + "FindBotByTgIdAndType"
 
 	botWithChannel, err := r.q.FindBotByTgIdAndType(ctx, db.FindBotByTgIdAndTypeParams{
@@ -35,15 +34,15 @@ func (r *BotPostgresRepository) FindBotByTgIdAndType(
 		Type: string(botType),
 	})
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, domain.ErrBotNotFound
 		}
 		return nil, fmt.Errorf("%s:%v", op, err)
 	}
 
-	var channel *entities.Channel
+	var channel *domain.Channel
 	if botWithChannel.ChannelID.Valid {
-		channel = &entities.Channel{
+		channel = &domain.Channel{
 			ID:                int(*ptrInt32(botWithChannel.ChannelID)),
 			Code:              botWithChannel.Code.String,
 			ChannelChatID:     ptrInt64(botWithChannel.ChannelChatID),
@@ -53,7 +52,7 @@ func (r *BotPostgresRepository) FindBotByTgIdAndType(
 		}
 	}
 
-	return &entities.BotWithChannel{
+	return &domain.BotWithChannel{
 		ID:      botWithChannel.ID,
 		TgID:    botWithChannel.Tgid,
 		Type:    botWithChannel.Type,
@@ -63,7 +62,7 @@ func (r *BotPostgresRepository) FindBotByTgIdAndType(
 
 func (r *BotPostgresRepository) Create(
 	ctx context.Context, tgid int64, botType string,
-) (*entities.BotWithChannel, error) {
+) (*domain.BotWithChannel, error) {
 	const op = botPkg + ".Create"
 
 	bot, err := r.q.CreateBot(ctx, db.CreateBotParams{
@@ -74,7 +73,7 @@ func (r *BotPostgresRepository) Create(
 		return nil, fmt.Errorf("%s:%v", op, err)
 	}
 
-	return &entities.BotWithChannel{
+	return &domain.BotWithChannel{
 		ID:      bot.ID,
 		TgID:    bot.Tgid,
 		Type:    bot.Type,
