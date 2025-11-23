@@ -37,7 +37,7 @@ func (h *UserHandler) RegisterRoutes(r chi.Router) {
 const userPkg = "transport.http.handler.UserHandler"
 
 func (h *UserHandler) GetQueries(w http.ResponseWriter, r *http.Request, log *slog.Logger) (int64, int, bool) {
-	tgID, ok := helpers.ParseQuery(w, r, log, "tgid", true)
+	tgID, ok := helpers.ParseQuery(w, r, log, "tgId", true)
 	channelID, ok := helpers.ParseQuery(w, r, log, "channelId", true)
 
 	log.Info("query parameteres decoded",

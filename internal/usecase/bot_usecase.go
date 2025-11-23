@@ -26,7 +26,7 @@ func (uc *BotUseCase) Auth(
 ) (*domain.BotWithChannel, error) {
 	const op = botPkg + ".Auth"
 	bot, err := uc.r.FindBotByTgIdAndType(ctx, tgid, botType)
-	if err != nil {
+	if err != nil && err != domain.ErrBotNotFound {
 		return nil, fmt.Errorf("%s:%v", op, err)
 	}
 
