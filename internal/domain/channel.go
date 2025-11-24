@@ -19,9 +19,7 @@ type ChannelWithoutCode struct {
 	Decorations       *string
 }
 
-type ChannelWithBotTgidAndType struct {
-	BotTgID           int
-	BotType           string
+type ChannelWithoutID struct {
 	Code              string
 	ChannelChatID     *int64
 	AdminChatID       *int64
@@ -30,6 +28,8 @@ type ChannelWithBotTgidAndType struct {
 }
 
 type ChannelRepository interface {
-	Create(ctx context.Context, channel ChannelWithBotTgidAndType) (*Channel, error)
+	Create(ctx context.Context, channel ChannelWithoutID) (int, error)
 	Update(ctx context.Context, channel ChannelWithoutCode) (*Channel, error)
+	FindByCode(ctx context.Context, code string) (*ChannelWithoutCode, error)
+	FindByID(ctx context.Context, id int) (*ChannelWithoutID, error)
 }

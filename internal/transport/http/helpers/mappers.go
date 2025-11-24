@@ -16,6 +16,26 @@ func MapChannelToChannelResponse(channel domain.Channel) dto.ChannelResponse {
 	}
 }
 
+func MapChannelWithoutCodeToChannelWithoutCodeResponse(channel domain.ChannelWithoutCode) dto.ChannelWithoutCodeResponse {
+	return dto.ChannelWithoutCodeResponse{
+		ID:                channel.ID,
+		ChannelChatID:     channel.ChannelChatID,
+		AdminChatID:       channel.AdminChatID,
+		DiscussionsChatID: channel.DiscussionsChatID,
+		Decorations:       channel.Decorations,
+	}
+}
+
+func MapChannelWithoutIDToChannelWithoutIDResponse(channel domain.ChannelWithoutID) dto.ChannelWithoutIDResponse {
+	return dto.ChannelWithoutIDResponse{
+		Code:              channel.Code,
+		ChannelChatID:     channel.ChannelChatID,
+		AdminChatID:       channel.AdminChatID,
+		DiscussionsChatID: channel.DiscussionsChatID,
+		Decorations:       channel.Decorations,
+	}
+}
+
 func MapTakeToTakeResponse(take domain.Take) dto.TakeResponse {
 	return dto.TakeResponse{
 		ID:             take.ID,

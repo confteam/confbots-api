@@ -21,6 +21,16 @@ func ParseURLParam(w http.ResponseWriter, r *http.Request, log *slog.Logger, nam
 	return id, true
 }
 
+func ParseURLParamStr(w http.ResponseWriter, r *http.Request, log *slog.Logger, name string) (string, bool) {
+	raw := chi.URLParam(r, name)
+	if raw == "" {
+		log.Warn("invalid URL param", slog.String("param", name), slog.String("value", raw))
+		EncodeJSON(w, r, http.StatusBadRequest, response.Error("invalid path parameter: "+name))
+		return raw, false
+	}
+	return raw, true
+}
+
 func ParseQuery(w http.ResponseWriter, r *http.Request, log *slog.Logger, name string, required bool) (int, bool) {
 	raw := r.URL.Query().Get(name)
 

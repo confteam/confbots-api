@@ -22,16 +22,16 @@ const channelPkg = "usecase.ChannelUseCase"
 
 func (uc *ChannelUseCase) Create(
 	ctx context.Context,
-	channel domain.ChannelWithBotTgidAndType,
-) (*domain.Channel, error) {
+	channel domain.ChannelWithoutID,
+) (int, error) {
 	const op = channelPkg + ".Create"
 
-	newChannel, err := uc.r.Create(ctx, channel)
+	id, err := uc.r.Create(ctx, channel)
 	if err != nil {
-		return nil, fmt.Errorf("%s:%v", op, err)
+		return 0, fmt.Errorf("%s:%v", op, err)
 	}
 
-	return newChannel, nil
+	return id, nil
 }
 
 func (uc *ChannelUseCase) Update(
@@ -49,4 +49,32 @@ func (uc *ChannelUseCase) Update(
 	}
 
 	return updatedChannel, err
+}
+
+func (uc *ChannelUseCase) FindByCode(ctx context.Context, code string) (*domain.ChannelWithoutCode, error) {
+	const op = channelPkg + ".FindByCode"
+
+	channel, err := uc.r.FindByCode(ctx, code)
+	if err != nil {
+		if errors.Is(err, domain.ErrChannelNotFound) {
+			return nil, err
+		}
+		return nil, fmt.Errorf("%s:%v", op, err)
+	}
+
+	return channel, err
+}
+
+func (uc *ChannelUseCase) FindByID(ctx context.Context, id int) (*domain.ChannelWithoutID, error) {
+	const op = channelPkg + ".FindByID"
+
+	channel, err := uc.r.FindByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, domain.ErrChannelNotFound) {
+			return nil, err
+		}
+		return nil, fmt.Errorf("%s:%v", op, err)
+	}
+
+	return channel, err
 }

@@ -8,13 +8,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type Bot struct {
-	ID        int32
-	Tgid      int64
-	Type      string
-	ChannelID pgtype.Int4
-}
-
 type Channel struct {
 	ID                int32
 	Code              string
