@@ -155,8 +155,8 @@ WITH upsert_user AS (
   RETURNING id
 ),
 upsert_user_channel AS (
-  INSERT INTO user_channels (user_id, channel_id, role)
-  SELECT id, $2, $3 FROM upsert_user
+  INSERT INTO user_channels (user_id, channel_id)
+  SELECT id, $2 FROM upsert_user
   ON CONFLICT (user_id, channel_id) DO UPDATE
   SET role = EXCLUDED.role
 )
@@ -166,11 +166,10 @@ SELECT id FROM upsert_user
 type UpsertUserParams struct {
 	Tgid      int64
 	ChannelID int32
-	Role      string
 }
 
 func (q *Queries) UpsertUser(ctx context.Context, arg UpsertUserParams) (int32, error) {
-	row := q.db.QueryRow(ctx, upsertUser, arg.Tgid, arg.ChannelID, arg.Role)
+	row := q.db.QueryRow(ctx, upsertUser, arg.Tgid, arg.ChannelID)
 	var id int32
 	err := row.Scan(&id)
 	return id, err

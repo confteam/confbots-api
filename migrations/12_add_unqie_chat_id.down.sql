@@ -1,0 +1,5 @@
+ALTER TABLE channels
+DROP CONSTRAINT channels_code_unique,
+DROP CONSTRAINT channels_admin_chat_id_unique,
+DROP CONSTRAINT channels_channel_chat_id_unique,
+DROP CONSTRAINT channels_discussions_chat_id_unique;

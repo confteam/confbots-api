@@ -29,6 +29,11 @@ type ChannelWithoutIDResponse struct {
 	Decorations       *string `json:"decorations"`
 }
 
+type ChannelIDWithChannelChatIDResponse struct {
+	ID            int   `json:"id"`
+	ChannelChatID int64 `json:"channelChatId"`
+}
+
 type CreateChannelRequest struct {
 	Code              string `json:"code" validate:"required"`
 	ChannelChatID     *int64 `json:"channelChatId,omitempty"`
@@ -60,4 +65,14 @@ type FindChannelByCodeResponse struct {
 type FindChannelByIDResponse struct {
 	resp.Response
 	Channel ChannelWithoutIDResponse `json:"channel"`
+}
+
+type FindChannelByChatIDResponse struct {
+	resp.Response
+	ID int `json:"id"`
+}
+
+type GetAllUserChannelsResponse struct {
+	Channels []ChannelIDWithChannelChatIDResponse `json:"channels"`
+	resp.Response
 }

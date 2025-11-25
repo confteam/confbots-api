@@ -34,7 +34,7 @@ func main() {
 	takeRepo := repository.NewTakePostgresRepository(queries)
 	replyRepo := repository.NewReplyPostgresRepository(queries)
 
-	channelUseCase := usecase.NewChannelUseCase(channelRepo)
+	channelUseCase := usecase.NewChannelUseCase(channelRepo, userRepo)
 	userUseCase := usecase.NewUserUseCase(userRepo)
 	takeUseCase := usecase.NewTakeUseCase(userRepo, takeRepo)
 	replyUseCase := usecase.NewReplyUseCase(replyRepo)

@@ -1,8 +1,8 @@
 CREATE TABLE channels (
   id SERIAL PRIMARY KEY,
-  code TEXT NOT NULL,
-  channel_chat_id BIGINT,
-  admin_chat_id BIGINT,
+  code TEXT NOT NULL UNIQUE WHERE IS NOT NULL,
+  channel_chat_id BIGINT UNIQUE WHERE IS NOT NULL,
+  admin_chat_id BIGINT UNIQUE WHERE IS NOT NULL,
   discussions_chat_id BIGINT,
   decorations TEXT
 );
@@ -16,7 +16,7 @@ CREATE TABLE user_channels (
   id SERIAL PRIMARY KEY,
   user_id INTEGER REFERENCES users(id) NOT NULL,
   channel_id INTEGER REFERENCES channels(id) NOT NULL,
-  role TEXT NOT NULL,
+  role TEXT DEFAULT 'MEMBER' NOT NULL,
   anonimity BOOLEAN DEFAULT TRUE,
 
   CONSTRAINT user_channels_user_id_channel_id_unique UNIQUE (user_id, channel_id)

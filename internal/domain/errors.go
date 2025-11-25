@@ -7,6 +7,7 @@ var (
 	ErrUserNotFound        = errors.New("user not found")
 	ErrUserChannelNotFound = errors.New("user-channel not found")
 	ErrChannelNotFound     = errors.New("channel not found")
+	ErrChannelExists       = errors.New("channel with this chat id is already exists")
 	ErrReplyNotFound       = errors.New("reply not found")
 	ErrTakeNotFound        = errors.New("take not found")
 )

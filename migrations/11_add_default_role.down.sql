@@ -1,0 +1,2 @@
+ALTER TABLE user_channels
+ALTER COLUMN role DROP DEFAULT;

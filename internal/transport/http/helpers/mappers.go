@@ -56,3 +56,15 @@ func MapReplyToReplyResponse(reply domain.Reply) dto.ReplyResponse {
 		ChannelID:      reply.ChannelID,
 	}
 }
+
+func MapChannelIDWithChannelChatIDToChannelIDWithChannelChatIDResponse(c []domain.ChannelIDWithChannelChat) []dto.ChannelIDWithChannelChatIDResponse {
+	cr := make([]dto.ChannelIDWithChannelChatIDResponse, len(c))
+	for i, v := range c {
+		cr[i] = dto.ChannelIDWithChannelChatIDResponse{
+			ID:            v.ID,
+			ChannelChatID: v.ChannelChatID,
+		}
+	}
+
+	return cr
+}

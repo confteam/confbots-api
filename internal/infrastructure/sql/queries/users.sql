@@ -7,8 +7,8 @@ WITH upsert_user AS (
   RETURNING id
 ),
 upsert_user_channel AS (
-  INSERT INTO user_channels (user_id, channel_id, role)
-  SELECT id, $2, $3 FROM upsert_user
+  INSERT INTO user_channels (user_id, channel_id)
+  SELECT id, $2 FROM upsert_user
   ON CONFLICT (user_id, channel_id) DO UPDATE
   SET role = EXCLUDED.role
 )

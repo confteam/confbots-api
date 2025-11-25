@@ -36,6 +36,19 @@ func (q *Queries) CreateChannel(ctx context.Context, arg CreateChannelParams) (i
 	return id, err
 }
 
+const findChannelByChatId = `-- name: FindChannelByChatId :one
+SELECT id
+FROM channels
+WHERE admin_chat_id = $1 OR channel_chat_id = $1 OR discussions_chat_id = $1
+`
+
+func (q *Queries) FindChannelByChatId(ctx context.Context, adminChatID pgtype.Int8) (int32, error) {
+	row := q.db.QueryRow(ctx, findChannelByChatId, adminChatID)
+	var id int32
+	err := row.Scan(&id)
+	return id, err
+}
+
 const findChannelByCode = `-- name: FindChannelByCode :one
 SELECT id, channel_chat_id, admin_chat_id, discussions_chat_id, decorations
 FROM channels
@@ -88,6 +101,40 @@ func (q *Queries) FindChannelById(ctx context.Context, id int32) (FindChannelByI
 		&i.Decorations,
 	)
 	return i, err
+}
+
+const getAllUserChannels = `-- name: GetAllUserChannels :many
+SELECT
+    uc.channel_id,
+    c.channel_chat_id
+FROM user_channels AS uc
+JOIN channels AS c ON c.id = uc.channel_id
+WHERE uc.user_id = $1
+`
+
+type GetAllUserChannelsRow struct {
+	ChannelID     int32
+	ChannelChatID pgtype.Int8
+}
+
+func (q *Queries) GetAllUserChannels(ctx context.Context, userID int32) ([]GetAllUserChannelsRow, error) {
+	rows, err := q.db.Query(ctx, getAllUserChannels, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetAllUserChannelsRow
+	for rows.Next() {
+		var i GetAllUserChannelsRow
+		if err := rows.Scan(&i.ChannelID, &i.ChannelChatID); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const updateChannel = `-- name: UpdateChannel :one

@@ -31,18 +31,23 @@ func NewChannelHandler(uc *usecase.ChannelUseCase, log *slog.Logger) *ChannelHan
 func (h *ChannelHandler) RegisterRoutes(r chi.Router) {
 	r.Post("/channels", h.Create)
 	r.Patch("/channels/{id}", h.Update)
-	r.Get("/channels/{idOrCode}", h.GetRouter)
+	r.Get("/channels/{idOrCodeOrChatID}", h.GetRouter)
+	r.Get("/channels", h.GetAllUserChannels)
 }
 
 const channelPkg = "transport.http.handler.ChannelHandler"
 
 func (h *ChannelHandler) GetRouter(w http.ResponseWriter, r *http.Request) {
-	idOrCode := chi.URLParam(r, "idOrCode")
+	idOrCodeOrChatID := chi.URLParam(r, "idOrCodeOrChatID")
 
-	if id, err := strconv.Atoi(idOrCode); err == nil {
-		h.FindByID(w, r, id)
+	if id, err := strconv.Atoi(idOrCodeOrChatID); err == nil {
+		if id > 10000 || id < 0 {
+			h.FindByChatID(w, r, int64(id))
+		} else {
+			h.FindByID(w, r, id)
+		}
 	} else {
-		h.FindByCode(w, r, idOrCode)
+		h.FindByCode(w, r, idOrCodeOrChatID)
 	}
 }
 
@@ -201,6 +206,55 @@ func (h *ChannelHandler) FindByID(w http.ResponseWriter, r *http.Request, id int
 
 	response := dto.FindChannelByIDResponse{
 		Channel:  helpers.MapChannelWithoutIDToChannelWithoutIDResponse(*channel),
+		Response: resp.OK(),
+	}
+
+	helpers.EncodeJSON(w, r, http.StatusOK, response)
+}
+
+func (h *ChannelHandler) FindByChatID(w http.ResponseWriter, r *http.Request, chatID int64) {
+	const op = channelPkg + ".FindByChatID"
+
+	log := helpers.ReqLogger(h.log, r, op)
+
+	id, err := h.uc.FindByChatID(r.Context(), chatID)
+	if err != nil {
+		helpers.HandleError(w, r, log, err)
+		return
+	}
+
+	log.Info("got channel",
+		slog.Int("id", id),
+	)
+
+	response := dto.FindChannelByChatIDResponse{
+		ID:       id,
+		Response: resp.OK(),
+	}
+
+	helpers.EncodeJSON(w, r, http.StatusOK, response)
+}
+
+func (h *ChannelHandler) GetAllUserChannels(w http.ResponseWriter, r *http.Request) {
+	const op = channelPkg + ".GetAllUserChannels"
+
+	log := helpers.ReqLogger(h.log, r, op)
+
+	tgID, ok := helpers.ParseQuery(w, r, log, "userTgId", true)
+	if !ok {
+		return
+	}
+
+	channels, err := h.uc.GetAllUserChannels(r.Context(), int64(tgID))
+	if err != nil {
+		helpers.HandleError(w, r, log, err)
+		return
+	}
+
+	log.Info("got channels", slog.Any("channels", channels))
+
+	response := dto.GetAllUserChannelsResponse{
+		Channels: helpers.MapChannelIDWithChannelChatIDToChannelIDWithChannelChatIDResponse(channels),
 		Response: resp.OK(),
 	}
 

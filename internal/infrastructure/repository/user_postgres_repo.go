@@ -26,12 +26,10 @@ func (r *UserPostgresRepository) Upsert(
 	ctx context.Context,
 	tgid int64,
 	channelID int,
-	role string,
 ) (int, error) {
 	const op = userPkg + ".Upsert"
 
 	id, err := r.q.UpsertUser(ctx, db.UpsertUserParams{
-		Role:      string(role),
 		Tgid:      tgid,
 		ChannelID: int32(channelID),
 	})
@@ -56,7 +54,7 @@ func (r *UserPostgresRepository) UpdateRole(
 		Role:      string(role),
 	}); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return domain.ErrUserNotFound
+			return domain.ErrUserChannelNotFound
 		}
 		return fmt.Errorf("%s:%v", op, err)
 	}
@@ -73,7 +71,7 @@ func (r *UserPostgresRepository) GetRole(ctx context.Context, userID int, channe
 	})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return "", domain.ErrUserNotFound
+			return "", domain.ErrUserChannelNotFound
 		}
 		return "", fmt.Errorf("%s:%v", op, err)
 	}

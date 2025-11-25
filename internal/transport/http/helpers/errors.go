@@ -19,6 +19,10 @@ func HandleError(w http.ResponseWriter, r *http.Request, log *slog.Logger, err e
 		log.Warn("Channel not found", slog.Any("error", err))
 		EncodeJSON(w, r, http.StatusNotFound, response.Error(err.Error()))
 
+	case errors.Is(err, domain.ErrChannelExists):
+		log.Warn("Channel exists", slog.Any("error", err))
+		EncodeJSON(w, r, http.StatusConflict, response.Error(err.Error()))
+
 	case errors.Is(err, domain.ErrBotNotFound):
 		log.Warn("Bot not found", slog.Any("error", err))
 		EncodeJSON(w, r, http.StatusNotFound, response.Error(err.Error()))

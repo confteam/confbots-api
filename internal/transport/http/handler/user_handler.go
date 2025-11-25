@@ -64,7 +64,6 @@ func (h *UserHandler) Upsert(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Info("request body decoded",
-		slog.String("role", string(req.Role)),
 		slog.Int64("tgid", int64(tgID)),
 		slog.Int("channel_id", req.ChannelID),
 	)
@@ -73,7 +72,7 @@ func (h *UserHandler) Upsert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, err := h.uc.Upsert(r.Context(), int64(tgID), req.ChannelID, req.Role)
+	userID, err := h.uc.Upsert(r.Context(), int64(tgID), req.ChannelID)
 	if err != nil {
 		helpers.HandleError(w, r, log, err)
 		return
@@ -83,7 +82,6 @@ func (h *UserHandler) Upsert(w http.ResponseWriter, r *http.Request) {
 		slog.Int64("tgid", int64(tgID)),
 		slog.Int("user_id", userID),
 		slog.Int("channel_id", req.ChannelID),
-		slog.String("role", string(req.Role)),
 	)
 
 	response := dto.UpsertUserResponse{

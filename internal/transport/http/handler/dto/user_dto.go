@@ -5,8 +5,7 @@ import (
 )
 
 type UpsertUserRequest struct {
-	ChannelID int    `json:"channelId" validate:"required"`
-	Role      string `json:"role" validate:"required"`
+	ChannelID int `json:"channelId" validate:"required"`
 }
 
 type UpsertUserResponse struct {
