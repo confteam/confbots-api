@@ -12,5 +12,6 @@ type Reply struct {
 
 type ReplyRepository interface {
 	Create(ctx context.Context, userMessageID int64, adminMessageID int64, takeID int, channelID int) (int, error)
-	GetByMsgId(ctx context.Context, messageID int64, channelID int) (*Reply, error)
+	GetByMsgIDAndChannelID(ctx context.Context, messageID int64, channelID int) (*Reply, error)
+	GetByMsgIDAndTakeID(ctx context.Context, messageID int64, takeID int) (*Reply, error)
 }

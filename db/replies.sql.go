@@ -34,19 +34,43 @@ func (q *Queries) CreateReply(ctx context.Context, arg CreateReplyParams) (int32
 	return id, err
 }
 
-const getReplyByMsgId = `-- name: GetReplyByMsgId :one
+const getReplyByMsgIdAndChannelId = `-- name: GetReplyByMsgIdAndChannelId :one
 SELECT id, user_message_id, admin_message_id, take_id, channel_id
 FROM replies
 WHERE (user_message_id = $1 OR admin_message_id = $1) AND channel_id = $2
 `
 
-type GetReplyByMsgIdParams struct {
+type GetReplyByMsgIdAndChannelIdParams struct {
 	UserMessageID int64
 	ChannelID     int32
 }
 
-func (q *Queries) GetReplyByMsgId(ctx context.Context, arg GetReplyByMsgIdParams) (Reply, error) {
-	row := q.db.QueryRow(ctx, getReplyByMsgId, arg.UserMessageID, arg.ChannelID)
+func (q *Queries) GetReplyByMsgIdAndChannelId(ctx context.Context, arg GetReplyByMsgIdAndChannelIdParams) (Reply, error) {
+	row := q.db.QueryRow(ctx, getReplyByMsgIdAndChannelId, arg.UserMessageID, arg.ChannelID)
+	var i Reply
+	err := row.Scan(
+		&i.ID,
+		&i.UserMessageID,
+		&i.AdminMessageID,
+		&i.TakeID,
+		&i.ChannelID,
+	)
+	return i, err
+}
+
+const getReplyByMsgIdAndTakeId = `-- name: GetReplyByMsgIdAndTakeId :one
+SELECT id, user_message_id, admin_message_id, take_id, channel_id
+FROM replies
+WHERE (user_message_id = $1 OR admin_message_id = $1) AND take_id = $2
+`
+
+type GetReplyByMsgIdAndTakeIdParams struct {
+	UserMessageID int64
+	TakeID        int32
+}
+
+func (q *Queries) GetReplyByMsgIdAndTakeId(ctx context.Context, arg GetReplyByMsgIdAndTakeIdParams) (Reply, error) {
+	row := q.db.QueryRow(ctx, getReplyByMsgIdAndTakeId, arg.UserMessageID, arg.TakeID)
 	var i Reply
 	err := row.Scan(
 		&i.ID,

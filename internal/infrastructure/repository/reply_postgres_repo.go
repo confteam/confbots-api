@@ -44,16 +44,43 @@ func (r *ReplyPostgresRepository) Create(
 	return int(id), nil
 }
 
-func (r *ReplyPostgresRepository) GetByMsgId(
+func (r *ReplyPostgresRepository) GetByMsgIDAndChannelID(
 	ctx context.Context,
 	messageID int64,
 	channelID int,
 ) (*domain.Reply, error) {
-	const op = replyPkg + ".GetByMsgId"
+	const op = replyPkg + ".GetByMsgIDAndChannelID"
 
-	reply, err := r.q.GetReplyByMsgId(ctx, db.GetReplyByMsgIdParams{
+	reply, err := r.q.GetReplyByMsgIdAndChannelId(ctx, db.GetReplyByMsgIdAndChannelIdParams{
 		UserMessageID: messageID,
 		ChannelID:     int32(channelID),
+	})
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, domain.ErrReplyNotFound
+		}
+		return nil, fmt.Errorf("%s:%v", op, err)
+	}
+
+	return &domain.Reply{
+		ID:             int(reply.ID),
+		UserMessageID:  reply.UserMessageID,
+		AdminMessageID: reply.AdminMessageID,
+		TakeID:         int(reply.TakeID),
+		ChannelID:      int(reply.ChannelID),
+	}, nil
+}
+
+func (r *ReplyPostgresRepository) GetByMsgIDAndTakeID(
+	ctx context.Context,
+	messageID int64,
+	takeID int,
+) (*domain.Reply, error) {
+	const op = replyPkg + ".GetByMsgId"
+
+	reply, err := r.q.GetReplyByMsgIdAndTakeId(ctx, db.GetReplyByMsgIdAndTakeIdParams{
+		UserMessageID: messageID,
+		TakeID:        int32(takeID),
 	})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

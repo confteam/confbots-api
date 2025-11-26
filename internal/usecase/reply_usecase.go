@@ -37,14 +37,32 @@ func (uc *ReplyUseCase) Create(
 	return id, nil
 }
 
-func (uc *ReplyUseCase) GetByMsgID(
+func (uc *ReplyUseCase) GetByMsgIDAndChannelID(
 	ctx context.Context,
 	messageID int64,
 	channelID int,
 ) (*domain.Reply, error) {
-	const op = replyPkg + ".GetByMsgID"
+	const op = replyPkg + ".GetByMsgIDAndChannelID"
 
-	reply, err := uc.r.GetByMsgId(ctx, messageID, channelID)
+	reply, err := uc.r.GetByMsgIDAndChannelID(ctx, messageID, channelID)
+	if err != nil {
+		if errors.Is(err, domain.ErrReplyNotFound) {
+			return nil, err
+		}
+		return nil, fmt.Errorf("%s:%v", op, err)
+	}
+
+	return reply, nil
+}
+
+func (uc *ReplyUseCase) GetByMsgIDAndTakeID(
+	ctx context.Context,
+	messageID int64,
+	takeID int,
+) (*domain.Reply, error) {
+	const op = replyPkg + ".GetByMsgIDAndTakeID"
+
+	reply, err := uc.r.GetByMsgIDAndTakeID(ctx, messageID, takeID)
 	if err != nil {
 		if errors.Is(err, domain.ErrReplyNotFound) {
 			return nil, err
