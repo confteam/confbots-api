@@ -1,8 +1,8 @@
 CREATE TABLE channels (
   id SERIAL PRIMARY KEY,
-  code TEXT NOT NULL UNIQUE WHERE IS NOT NULL,
-  channel_chat_id BIGINT UNIQUE WHERE IS NOT NULL,
-  admin_chat_id BIGINT UNIQUE WHERE IS NOT NULL,
+  code TEXT NOT NULL,
+  channel_chat_id BIGINT,
+  admin_chat_id BIGINT,
   discussions_chat_id BIGINT,
   decorations TEXT
 );
