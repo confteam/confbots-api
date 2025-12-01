@@ -32,6 +32,7 @@ func (h *UserHandler) RegisterRoutes(r chi.Router) {
 	r.Get("/users/role", h.GetRole)
 	r.Patch("/users/anonimity", h.ToggleAnonimity)
 	r.Get("/users/anonimity", h.GetAnonimity)
+	r.Get("/users", h.GetAllUsersInChannel)
 }
 
 const userPkg = "transport.http.handler.UserHandler"
@@ -217,6 +218,35 @@ func (h *UserHandler) ToggleAnonimity(w http.ResponseWriter, r *http.Request) {
 	response := dto.UserAnonimityResponse{
 		Anonimity: anonimity,
 		Response:  resp.OK(),
+	}
+
+	helpers.EncodeJSON(w, r, http.StatusOK, response)
+}
+
+func (h *UserHandler) GetAllUsersInChannel(w http.ResponseWriter, r *http.Request) {
+	const op = userPkg + ".GetAllUsersInChannel"
+
+	log := helpers.ReqLogger(h.log, r, op)
+
+	channelID, ok := helpers.ParseQuery(w, r, log, "channelId", true)
+	if !ok {
+		return
+	}
+
+	tgIDs, err := h.uc.GetAllUsersInChannel(r.Context(), channelID)
+	if err != nil {
+		helpers.HandleError(w, r, log, err)
+		return
+	}
+
+	log.Info("got all users in channel",
+		slog.Int("channel_id", channelID),
+		slog.Any("tgids", tgIDs),
+	)
+
+	response := dto.GetAllUsersInChannelResponse{
+		TgIDs:    tgIDs,
+		Response: resp.OK(),
 	}
 
 	helpers.EncodeJSON(w, r, http.StatusOK, response)

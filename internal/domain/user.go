@@ -27,4 +27,5 @@ type UserRepository interface {
 	ToggleAnonimity(ctx context.Context, userID int, channelID int) (bool, error)
 	GetUserChannelID(ctx context.Context, userID int, channelID int) (int, error)
 	GetUserChannelByID(ctx context.Context, id int) (*UserChannel, error)
+	GetAllUsersInChannel(ctx context.Context, channelID int) ([]int64, error)
 }

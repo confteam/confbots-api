@@ -29,3 +29,8 @@ type UserAnonimityResponse struct {
 	Anonimity bool `json:"anonimity"`
 	resp.Response
 }
+
+type GetAllUsersInChannelResponse struct {
+	TgIDs []int64 `json:"tgids"`
+	resp.Response
+}

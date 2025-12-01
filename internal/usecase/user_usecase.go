@@ -138,3 +138,17 @@ func (uc *UserUseCase) ToggleAnonimity(
 
 	return anonimity, nil
 }
+
+func (uc *UserUseCase) GetAllUsersInChannel(ctx context.Context, channelID int) ([]int64, error) {
+	const op = userPkg + ".GetAllUsersInChannel"
+
+	tgIDs, err := uc.r.GetAllUsersInChannel(ctx, channelID)
+	if err != nil {
+		if errors.Is(err, domain.ErrUserNotFound) {
+			return nil, err
+		}
+		return nil, fmt.Errorf("%s:%v", op, err)
+	}
+
+	return tgIDs, nil
+}

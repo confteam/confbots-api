@@ -54,3 +54,9 @@ WHERE user_id = $1 AND channel_id = $2;
 SELECT *
 FROM user_channels
 WHERE id = $1;
+
+-- name: GetAllUsersInChannel :many
+SELECT u.tgid
+FROM users u
+JOIN user_channels uc ON uc.user_id = u.id
+WHERE uc.channel_id = $1;

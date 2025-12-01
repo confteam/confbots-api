@@ -11,6 +11,33 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const getAllUsersInChannel = `-- name: GetAllUsersInChannel :many
+SELECT u.tgid
+FROM users u
+JOIN user_channels uc ON uc.user_id = u.id
+WHERE uc.channel_id = $1
+`
+
+func (q *Queries) GetAllUsersInChannel(ctx context.Context, channelID int32) ([]int64, error) {
+	rows, err := q.db.Query(ctx, getAllUsersInChannel, channelID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int64
+	for rows.Next() {
+		var tgid int64
+		if err := rows.Scan(&tgid); err != nil {
+			return nil, err
+		}
+		items = append(items, tgid)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getUserAnonimity = `-- name: GetUserAnonimity :one
 SELECT anonimity
 FROM user_channels

@@ -177,3 +177,17 @@ func (r *UserPostgresRepository) GetUserChannelByID(ctx context.Context, id int)
 		Anonimity: uc.Anonimity.Bool,
 	}, nil
 }
+
+func (r *UserPostgresRepository) GetAllUsersInChannel(ctx context.Context, channelID int) ([]int64, error) {
+	const op = userPkg + ".GetAllUsersInChannel"
+
+	tgIDs, err := r.q.GetAllUsersInChannel(ctx, int32(channelID))
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, domain.ErrUserNotFound
+		}
+		return nil, fmt.Errorf("%s:%v", op, err)
+	}
+
+	return tgIDs, nil
+}
